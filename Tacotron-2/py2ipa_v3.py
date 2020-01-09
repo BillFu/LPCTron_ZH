@@ -264,7 +264,7 @@ def parse_hanzi_line(raw_hanzi_line):
 	hanzi_line_no_prosody = re.sub(pattern=pattern_prosody_annotation,
 		repl="", string=hanzi_line)
 
-	print(hanzi_line_no_prosody)
+	# print(hanzi_line_no_prosody)
 	punctuations_info = []  # collection of punctuations
 	next_hanzi_index = 0
 	for char in hanzi_line_no_prosody:
@@ -287,6 +287,7 @@ def filter_punctuation(punctuations_info):
 	return remained_punctuations_info
 
 # split the IPA of one chinese char into a list of IPA letter.
+# the returned result with such format: 't ʂʰ ən 2'
 def split_ipa(ipa):
 	ipa_phonemes = []
 	for letter in ipa:
@@ -295,6 +296,10 @@ def split_ipa(ipa):
 		else:
 			ipa_phonemes.append(letter)
 
+	result_str = ' '.join(ipa_phonemes) # with such format: 't ʂʰ ən 2'
+	return result_str
+
+
 # convert ipa sequence into the new format:
 # old format is a list, including punctuations, such as:
 # 沉鱼#1落雁#3，闭月#1羞花#4。
@@ -302,7 +307,9 @@ def split_ipa(ipa):
 # new format is a string, such as
 # 't ʂʰ ən 2|y 2|l u o 4|i ɛ n 4|,|p i 4|y ɛ 4|ɕ i o u 1|x u a 1|。'
 def flatten_ipa_seq(ipa_list):
-
+	ipa_str_list = map(split_ipa, ipa_list)
+	total_ipa_seq = '|'.join(ipa_str_list)
+	return total_ipa_seq
 
 # hanzi_line, py_line have been cleaned, containing no new line symbol.
 def proc_one_sentence(hanzi_line, py_line):
@@ -316,16 +323,17 @@ def proc_one_sentence(hanzi_line, py_line):
 		punctuations_info.append(('。', len(ipa_list) - 1))
 
 	# we should filter the punctuations at first,
+	# print(hanzi_line)
 	remained_punctuations_info = filter_punctuation(punctuations_info)
 
-	print(remained_punctuations_info)
+	# print(remained_punctuations_info)
 
 	# and get the remained ones embedded into the ipa sequence
 	next_punct_info = remained_punctuations_info.pop(0) # from the beginning
 	next_punct_char = next_punct_info[0]
 	next_punct_index = next_punct_info[1]
 
-	new_ipa_list = []
+	new_ipa_list = []  # new_ipa_list contains punctuations
 	for index, ipa in enumerate(ipa_list):
 		new_ipa_list.append(ipa)
 
@@ -340,8 +348,8 @@ def proc_one_sentence(hanzi_line, py_line):
 				next_punct_index = next_punct_info[1]
 
 	# finally, a string built from the new ipa list embedded with break punctuations
-	new_ipa_seq = ' '.join(new_ipa_list)
-	return new_ipa_seq
+	total_ipa_seq = flatten_ipa_seq(new_ipa_list)
+	return total_ipa_seq
 
 
 def test_proc_one_sentence():
@@ -351,14 +359,18 @@ def test_proc_one_sentence():
 	# hanzi_line = '000792	杨怡#2整理#1仪容后#3，更#1不时#2心虚#1抹嘴#4。'
 	# py_line = '	yang2 yi2 zheng2 li3 yi2 rong2 hou4 geng4 bu4 shi2 xin1 xu1 mo2 zui3'
 
-	hanzi_line = '000699	建筑物#1越高#3，“烟囱#1效应#2”越明显#4。'
-	py_line = '	jian4 zhu4 wu4 yue4 gao1 yan1 cong1 xiao4 ying4 yue4 ming2 xian3'
-
-	hanzi_line = hanzi_line.strip()
-	py_line = py_line.strip()
+	hanzi_line = '000029	遛弯儿#2都得#2躲远点#4。'
+	py_line = 'liu4 wanr1 dou1 dei3 duo2 yuan2 dian3'
 
 	ipa_seq = proc_one_sentence(hanzi_line, py_line)
-	# print(hanzi_line)
+	print(hanzi_line)
+	print(ipa_seq)
+
+	hanzi_line = '000029	遛弯儿#2都得#2躲远点#4。'
+	py_line = 'liu4 wan2 er5 dou1 dei3 duo2 yuan2 dian3'
+
+	ipa_seq = proc_one_sentence(hanzi_line, py_line)
+	print(hanzi_line)
 	print(ipa_seq)
 
 
