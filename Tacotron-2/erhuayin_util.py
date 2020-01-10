@@ -30,6 +30,20 @@ def parse_hanzi_line(raw_hanzi_line):
 	return id, hanzi_list
 
 
+# the input pinyin is a syllable for one chinese char, or erhuayin for two chars
+# return True for erhuayin
+def judge_erhuayin(pinyin):
+	if len(pinyin) <= 3:
+		return False
+
+	if pinyin[-1] in ['1', '2', '3', '4', '5'] \
+		and pinyin[-2] == 'r':
+		return True
+	else:
+		return False
+
+
+# return False when no erhuayin found.
 def detect_erhuayin(hanzi_line, py_line):
 	id, pure_hanzi_list = parse_hanzi_line(hanzi_line)
 
@@ -46,7 +60,35 @@ def detect_erhuayin(hanzi_line, py_line):
 	# print("py_count: {}".format(py_count))
 
 	if hz_count != py_count and '儿' in pure_hanzi_list :
-		print("er_hua_yin detected with ID: {}".format(id))
+		return True
+	else:
+		return False
+
+
+def fix_erhuayin(erhuayin):
+	tone = erhuayin[-1]
+	l = len(erhuayin)
+	first_py = erhuayin[:l-2] + tone
+
+	result = [first_py, "er5"]
+	print("{} ==> {}".format(erhuayin, result))
+	return result
+
+
+def fix_erhuayin_line(py_line):
+	py_list = py_line.split()
+
+	fixed_py_list = []
+	for pinyin in py_list:
+		is_erhuayin = judge_erhuayin(pinyin)
+		if not is_erhuayin:
+			fixed_py_list.append(pinyin)
+		else:
+			fixed_result = fix_erhuayin(pinyin)
+			fixed_py_list.extend(fixed_result)
+
+	fixed_py_line = " ".join(fixed_py_list)
+	return fixed_py_line
 
 
 def test_detect_erhuayin():
@@ -70,7 +112,7 @@ def main():
 		print(arg, getattr(args, arg))
 	print("------------------------------------------------------------------------")
 
-	# out_file = open(args.out_transcript_file, 'w')
+	out_file = open(args.out_transcript_file, 'w')
 
 	with open(args.in_transcript_file, 'r') as f:
 		while True:
@@ -82,12 +124,15 @@ def main():
 			line2 = f.readline()
 			py_line = line2.strip()
 
-			detect_erhuayin(hanzi_line, py_line)
+			has_erhuayin = detect_erhuayin(hanzi_line, py_line)
+			if has_erhuayin:  # need localization and fixing
+				print(hanzi_line)
+				py_line = fix_erhuayin_line(py_line)
 
-			# out_file.write(hanzi_line + os.linesep)
-			# out_file.write(ipa_line + os.linesep)
+			out_file.write(hanzi_line + os.linesep)
+			out_file.write("\t" + py_line + os.linesep)
 
-	# out_file.close()
+	out_file.close()
 
 	print("--------------All Done!-----------------------------")
 
