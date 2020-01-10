@@ -249,7 +249,7 @@ def py2ipa_xqb(pinyinLine):
 
 
 pattern_prosody_annotation = re.compile(r"#[1,2,3,4]", flags=re.U)
-
+ipa_letter_dict = set()  # collect every ipa letter found in processing
 
 def parse_hanzi_line(raw_hanzi_line):
 	global pattern_prosody_annotation
@@ -289,12 +289,16 @@ def filter_punctuation(punctuations_info):
 # split the IPA of one chinese char into a list of IPA letter.
 # the returned result with such format: 't ʂʰ ən 2'
 def split_ipa(ipa):
+	global ipa_letter_dict
+
 	ipa_phonemes = []
 	for letter in ipa:
 		if letter == 'ʰ':
 			ipa_phonemes[-1] = ipa_phonemes[-1] + 'ʰ'
 		else:
 			ipa_phonemes.append(letter)
+
+	ipa_letter_dict.update(ipa_phonemes)
 
 	result_str = ' '.join(ipa_phonemes) # with such format: 't ʂʰ ən 2'
 	return result_str
@@ -305,9 +309,10 @@ def split_ipa(ipa):
 # 沉鱼#1落雁#3，闭月#1羞花#4。
 # ['tʂʰən2', 'y2', 'luo4', 'iɛn4', ',', 'pi4', 'yɛ4', 'ɕiou1', 'xua1', '。']
 # new format is a string, such as
-# 't ʂʰ ən 2|y 2|l u o 4|i ɛ n 4|,|p i 4|y ɛ 4|ɕ i o u 1|x u a 1|。'
+# 't ʂʰ ə n 2|y 2|l u o 4|i ɛ n 4|,|p i 4|y ɛ 4|ɕ i o u 1|x u a 1|。'
 def flatten_ipa_seq(ipa_list):
 	ipa_str_list = map(split_ipa, ipa_list)
+
 	total_ipa_seq = '|'.join(ipa_str_list)
 	return total_ipa_seq
 
@@ -323,7 +328,8 @@ def proc_one_sentence(hanzi_line, py_line):
 		punctuations_info.append(('。', len(ipa_list) - 1))
 
 	# we should filter the punctuations at first,
-	# print(hanzi_line)
+	print(hanzi_line)
+	# print(punctuations_info)
 	remained_punctuations_info = filter_punctuation(punctuations_info)
 
 	# print(remained_punctuations_info)
@@ -388,9 +394,12 @@ def test():
 
 
 def main():
+	global ipa_letter_dict
+
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--in_pinyin_file', type=str, required=True)
 	parser.add_argument('--out_ipa_file', type=str, required=True)
+	parser.add_argument('--out_ipa_dict_file', type=str, required=True)
 
 	args = parser.parse_args()
 
@@ -421,9 +430,17 @@ def main():
 
 	out_file.close()
 
+	ipa_letter_dict = sorted(ipa_letter_dict)
+	print("ipa letter dict: {}".format(ipa_letter_dict))
+	print("count of ipa letter dict: {}".format(len(ipa_letter_dict)))
+
+	with open(args.out_ipa_dict_file, 'w') as f:
+		for ipa_token in ipa_letter_dict:
+			f.write(ipa_token + os.linesep)
+
 	print("--------------All Done!-----------------------------")
 
 
 if __name__ == '__main__':
-	# main()
-	test_proc_one_sentence()
+	main()
+	# test_proc_one_sentence()

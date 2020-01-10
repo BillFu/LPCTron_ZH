@@ -6860,7 +6860,7 @@
 	zui4 chang2 jian4 de5 jiu4 shi4 ke4 you3 fo2 jiao4 liu4 zi4 zhen1 yan2 o1 ma1 ni1 ba1 mei1 hong1 de5 shi2 kuai4
 003431	昨日#3，省会#2空气#1污染#1指数#2为#1六十四#3，空气#1质量#2为良#4。
 	zuo2 ri4 sheng3 hui4 kong1 qi4 wu1 ran2 zhi3 shu4 wei2 liu4 shi2 si4 kong1 qi4 zhi4 liang4 wei2 liang2
-003432	这首诗的#1名字#3叫#1“悯农#4”
+003432	这首诗的#1名字#3叫#1“悯农#4”。
 	zhe4 shou3 shi1 de5 ming2 zi4 jiao4 min3 nong2
 003433	网络#1舆论#3极易#1成为#2整个#1社会#2信息#1舆论#1系统的#2不稳定#1因素#4。
 	wang3 luo4 yu2 lun4 ji2 yi4 cheng2 wei2 zheng3 ge4 she4 hui4 xin4 xi1 yu2 lun4 xi4 tong3 de5 bu4 wen3 ding4 yin1 su4
