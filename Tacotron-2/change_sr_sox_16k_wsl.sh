@@ -12,5 +12,5 @@ for in_wav_file in ${INPUT_WAV_DIR}/*.wav; do
     basename="${in_wav_file##*/}"
     new_name=${OUTPUT_WAV_DIR}/${basename}
     echo ${new_name}
-    # sox  ${in_wav_file} -r ${NEW_SR} ${new_name}
+    sox  ${in_wav_file} -r ${NEW_SR} ${new_name}
 done
