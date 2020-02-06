@@ -3,11 +3,11 @@ import argparse
 
 from multiprocessing import cpu_count
 from tqdm import tqdm
-from datasets import my_preprocessor
+from datasets import ipa_preprocessor
 from my_hparams import hparams
 
 
-def preprocess(args, raw_wave_dir, pinyin_ano, out_dir, hparams):
+def preprocess(args, raw_wave_dir, anno_file, out_dir, hparams):
 	print('out_dir: {}'.format(out_dir))
 	mel_dir = os.path.join(out_dir, 'mels')
 	trimmed_wav_dir = os.path.join(out_dir, 'audio')
@@ -17,7 +17,7 @@ def preprocess(args, raw_wave_dir, pinyin_ano, out_dir, hparams):
 	os.makedirs(linear_dir, exist_ok=True)
 	n_jobs = int(args.n_jobs)
 	#preprocessor.build_from_path( hparams, wave_dir, pinyin_ano, mel_dir, linear_dir, wav_dir, n_jobs, tqdm=tqdm)
-	metadata = my_preprocessor.build_from_path(hparams, raw_wave_dir, pinyin_ano,
+	metadata = ipa_preprocessor.build_from_path(hparams, raw_wave_dir, anno_file,
 		mel_dir, linear_dir, trimmed_wav_dir, n_jobs, tqdm=tqdm)
 	write_metadata(metadata, out_dir)
 
@@ -53,7 +53,7 @@ def write_metadata(metadata, out_dir):
 def main():
 	print('initializing preprocessing..')
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--base_dir', default='')
+	parser.add_argument('--base_dir', default='dataset')
 	parser.add_argument('--hparams', default='', 
 		help='Hyperparameter overrides as a comma-separated list of name=value pairs')
 	parser.add_argument('--dataset', default='biaobei')
@@ -65,7 +65,7 @@ def main():
 	parser.add_argument('--output', default='training_data')
 	parser.add_argument('--n_jobs', type=int, default=cpu_count())
 	parser.add_argument('--wave_dir', default='input wave files dir')
-	parser.add_argument('--pinyin_anno', default='pin yin annotation file')
+	parser.add_argument('--anno_file', default='ipa annotation file')
 	args = parser.parse_args()
 
 	modified_hp = hparams.parse(args.hparams)
@@ -73,9 +73,10 @@ def main():
 	assert args.merge_books in ('False', 'True')
 
 	# run_preprocess(args, modified_hp)
-	input_folder = os.path.join(args.base_dir, args.dataset)
+	input_folder = os.path.join(args.base_dir, args.dataset) # where .wav files are stored
 	output_folder = os.path.join(args.base_dir, args.output)
-	preprocess(args, input_folder, args.pinyin_anno, output_folder, hparams)
+	os.makedirs(output_folder, exist_ok=True)
+	preprocess(args, input_folder, args.anno_file, output_folder, hparams)
 
 
 if __name__ == '__main__':

@@ -37,6 +37,7 @@ Tacotron-2/tts_t2_wav/
 dataset/LJSpeech-1.1.tar.bz2
 dataset/tmp/
 dataset/training_data/
+dataset/biaobei/
 dataset/training_procedure
 patch.diff
 test.s16
