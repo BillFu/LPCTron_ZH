@@ -68,6 +68,7 @@ def main():
 	parser.add_argument('--anno_file', default='ipa annotation file')
 	args = parser.parse_args()
 
+	args.n_jobs = 1 # just for debug
 	modified_hp = hparams.parse(args.hparams)
 
 	assert args.merge_books in ('False', 'True')
