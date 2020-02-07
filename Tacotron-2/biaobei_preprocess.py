@@ -22,19 +22,6 @@ def preprocess(args, raw_wave_dir, anno_file, out_dir, hparams):
 	write_metadata(metadata, out_dir)
 
 
-'''
-def preprocess(args, input_folders, out_dir, hparams):
-	mel_dir = os.path.join(out_dir, 'mels')
-	# wav_dir = os.path.join(out_dir, 'audio')
-	linear_dir = os.path.join(out_dir, 'linear')
-	os.makedirs(mel_dir, exist_ok=True)
-	# os.makedirs(wav_dir, exist_ok=True)
-	os.makedirs(linear_dir, exist_ok=True)
-	metadata = preprocessor.build_from_path(hparams, input_folders, mel_dir, linear_dir, wav_dir, 
-		args.n_jobs, tqdm=tqdm)
-'''
-
-
 def write_metadata(metadata, out_dir):
 	with open(os.path.join(out_dir, 'train.txt'), 'w', encoding='utf-8') as f:
 		for m in metadata:

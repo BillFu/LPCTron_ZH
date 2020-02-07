@@ -128,59 +128,42 @@ def _process_utterance(mel_dir, linear_dir, out_wav_dir, index, in_wav_path, tex
 		out_dtype = np.float32
 
 	# Compute the mel scale spectrogram from the wav
-	linear_spectrogram, mel_spectrogram = audio.linear_mel_spectrogram(wav, hparams)
-	mel_spectrogram = mel_spectrogram.astype(np.float32)
+	mel_spectrogram = audio.melspectrogram(wav, hparams).astype(np.float32)
 	mel_frames = mel_spectrogram.shape[1]
-
-	linear_spectrogram = linear_spectrogram.astype(np.float32)
-	linear_frames = linear_spectrogram.shape[1]
 
 	if mel_frames > hparams.max_mel_frames and hparams.clip_mels_length:
 		return None
 
-	#sanity check
+	# Compute the linear scale spectrogram from the wav
+	linear_spectrogram = audio.linearspectrogram(wav, hparams).astype(np.float32)
+	linear_frames = linear_spectrogram.shape[1]
+
+	# sanity check
 	assert linear_frames == mel_frames
 
-	if hparams.use_lws:
-		#Ensure time resolution adjustement between audio and mel-spectrogram
-		fft_size = hparams.n_fft if hparams.win_size is None else hparams.win_size
-		l, r = audio.pad_lr(wav, fft_size, audio.get_hop_size(hparams))
+	# Ensure time resolution adjustement between audio and mel-spectrogram
+	fft_size = hparams.n_fft if hparams.win_size is None else hparams.win_size
+	l, r = audio.pad_lr(wav, fft_size, audio.get_hop_size(hparams))
 
-		#Zero pad audio signal
-		out = np.pad(out, (l, r), mode='constant', constant_values=constant_values)
-	else:
-		#Ensure time resolution adjustement between audio and mel-spectrogram
-		pad = audio.librosa_pad_lr(wav, hparams.n_fft, audio.get_hop_size(hparams))
-
-		#Reflect pad audio signal (Just like it's done in Librosa to avoid frame inconsistency)
-		out = np.pad(out, pad, mode='reflect')
-
+	# Zero pad for quantized signal
+	out = np.pad(out, (l, r), mode='constant', constant_values=constant_values)
 	assert len(out) >= mel_frames * audio.get_hop_size(hparams)
 
-	#time resolution adjustement
-	#ensure length of raw audio is multiple of hop size so that we can use
-	#transposed convolution to upsample
+	# time resolution adjustement
+	# ensure length of raw audio is multiple of hop size so that we can use
+	# transposed convolution to upsample
 	out = out[:mel_frames * audio.get_hop_size(hparams)]
 	assert len(out) % audio.get_hop_size(hparams) == 0
 	time_steps = len(out)
 
-	# Pre filename
-	audio_filename = 'audio-{}.npy'.format(index)
-	mel_filename = 'mel-{}.npy'.format(index)
-	linear_filename ='linear-{}.npy'.format(index)
-	audio_filename_full = replace(os.path.join(out_wav_dir, audio_filename))
-	mel_filename_full = replace(os.path.join(mel_dir, mel_filename))
-	linear_filename_full = replace(os.path.join(linear_dir, linear_filename))
-
-	# Make dir
-	os.makedirs(os.path.dirname(audio_filename_full), exist_ok=True)
-	os.makedirs(os.path.dirname(mel_filename_full), exist_ok=True)
-	os.makedirs(os.path.dirname(linear_filename_full), exist_ok=True)
-
 	# Write the spectrogram and audio to disk
-	np.save(audio_filename_full, out.astype(out_dtype), allow_pickle=False)
-	np.save(mel_filename_full, mel_spectrogram.T, allow_pickle=False)
-	np.save(linear_filename_full, linear_spectrogram.T, allow_pickle=False)
+	audio_filename = 'audio-{}.npy'.format(wavfile)
+	mel_filename = 'mel-{}.npy'.format(wavfile)
+	linear_filename = 'linear-{}.npy'.format(wavfile)
+
+	np.save(os.path.join(wav_dir, audio_filename), out.astype(out_dtype), allow_pickle=False)
+	np.save(os.path.join(mel_dir, mel_filename), mel_spectrogram.T, allow_pickle=False)
+	np.save(os.path.join(linear_dir, linear_filename), linear_spectrogram.T, allow_pickle=False)
 
 	# Return a tuple describing this training example
 	return (audio_filename, mel_filename, linear_filename, time_steps, mel_frames, text)
