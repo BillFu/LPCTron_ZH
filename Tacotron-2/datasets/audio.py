@@ -4,6 +4,7 @@ import numpy as np
 from scipy import signal
 import tensorflow as tf 
 from scipy.io import wavfile
+import lws
 
 
 def load_wav(path, sr):
@@ -95,7 +96,6 @@ def inv_mel_spectrogram(mel_spectrogram, hparams):
         return _griffin_lim(S ** hparams.power, hparams)
 
 def _lws_processor(hparams):
-    import lws
     return lws.lws(hparams.n_fft, get_hop_size(hparams), fftsize=hparams.win_size, mode="speech")
 
 def _griffin_lim(S, hparams):
@@ -112,7 +112,8 @@ def _griffin_lim(S, hparams):
 
 def _stft(y, hparams):
     if hparams.use_lws:
-        return _lws_processor(hparams).stft(y).T
+        lws_processor = _lws_processor(hparams)
+        return lws_processor.stft(y).T
     else:
         return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
 

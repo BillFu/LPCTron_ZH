@@ -53,13 +53,14 @@ def build_from_path(hparams, input_wave_dir, ipa_anno_file,
 			line1 = f.readline()
 			if not line1:
 				break
+			wave_file_base = line1[:6]
 			wave_base_name = line1[:6] + ".wav"
 			wave_full_name = os.path.join(input_wave_dir, wave_base_name)
 			line2 = f.readline()
 			ipa_seq = line2.strip()
 			
 			result = executor.submit(partial(_process_utterance, 
-				mel_dir, linear_dir, out_wav_dir, 
+				mel_dir, linear_dir, out_wav_dir, wave_file_base,
 				index, wave_full_name, ipa_seq, hparams))
 			futures.append(result)
 			index += 1
@@ -67,7 +68,7 @@ def build_from_path(hparams, input_wave_dir, ipa_anno_file,
 	return [future.result() for future in tqdm(futures) if future.result() is not None]
 
 
-def _process_utterance(mel_dir, linear_dir, out_wav_dir, index, in_wav_path, text, hparams):
+def _process_utterance(mel_dir, linear_dir, out_wav_dir, wav_file, index, in_wav_path, text, hparams):
 	"""
 	Preprocesses a single utterance wav/text pair
 
@@ -157,11 +158,11 @@ def _process_utterance(mel_dir, linear_dir, out_wav_dir, index, in_wav_path, tex
 	time_steps = len(out)
 
 	# Write the spectrogram and audio to disk
-	audio_filename = 'audio-{}.npy'.format(wavfile)
-	mel_filename = 'mel-{}.npy'.format(wavfile)
-	linear_filename = 'linear-{}.npy'.format(wavfile)
+	audio_filename = 'audio-{}.npy'.format(wav_file)
+	mel_filename = 'mel-{}.npy'.format(wav_file)
+	linear_filename = 'linear-{}.npy'.format(wav_file)
 
-	np.save(os.path.join(wav_dir, audio_filename), out.astype(out_dtype), allow_pickle=False)
+	np.save(os.path.join(out_wav_dir, audio_filename), out.astype(out_dtype), allow_pickle=False)
 	np.save(os.path.join(mel_dir, mel_filename), mel_spectrogram.T, allow_pickle=False)
 	np.save(os.path.join(linear_dir, linear_filename), linear_spectrogram.T, allow_pickle=False)
 
