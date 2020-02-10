@@ -7,8 +7,9 @@ import argparse
 
 py_line: "ka2 er2 pu3 pei2 wai4 sun1 wan2 hua2 ti1"
 
-ipa_line: "kʰ a 2 | ə r 2 | pʰ u 3 | pʰ e i 2 | u a i 4 |
-s u n 1 | u a n 2 | x u a 2 | tʰ i 1 | 。"
+ipa_line: "kʰ a 2 $ ə r 2 $ pʰ u 3 $ pʰ e i 2 $ u a i 4 $
+s u n 1 $ u a n 2 $ x u a 2 $ tʰ i 1 $ 。"
+Note: '$' is used as separator 
 """
 ######################## 全局变量 ########################
 
@@ -313,7 +314,7 @@ def split_ipa(ipa):
 def flatten_ipa_seq(ipa_list):
 	ipa_str_list = map(split_ipa, ipa_list)
 
-	total_ipa_seq = '|'.join(ipa_str_list)
+	total_ipa_seq = '$'.join(ipa_str_list)
 	return total_ipa_seq
 
 # hanzi_line, py_line have been cleaned, containing no new line symbol.

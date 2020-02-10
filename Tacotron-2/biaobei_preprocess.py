@@ -51,7 +51,7 @@ def main():
 	parser.add_argument('--book', default='northandsouth')
 	parser.add_argument('--output', default='training_data')
 	parser.add_argument('--n_jobs', type=int, default=cpu_count())
-	parser.add_argument('--wave_dir', default='input wave files dir')
+	# parser.add_argument('--wave_dir', default='input wave files dir')
 	parser.add_argument('--anno_file', default='ipa annotation file')
 	args = parser.parse_args()
 
