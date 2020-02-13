@@ -6,8 +6,7 @@ LPCNet/src/kiss_fft.o
 LPCNet/src/lpcnet.o
 LPCNet/src/nnet.o
 LPCNet/src/nnet_data.o
-LPCNet/src/pitch.o
-LPCNet/src/test_lpcnet.o
+LPCNet/src/*.o
 LPCNet/test_lpcnet
 
 Tacotron-2/A_team_of_Engineers_at_Visteon.f32
@@ -43,4 +42,3 @@ dataset/training_procedure
 patch.diff
 test.s16
 test.wav
-
