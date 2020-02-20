@@ -7,8 +7,8 @@ import tensorflow as tf
 import traceback
 import argparse
 
-from tacotron.feeder import Feeder
-from hparams import hparams_debug_string
+from tacotron.new_feeder import Feeder
+from my_hparams import hparams_debug_string
 from tacotron.models import create_model
 from tacotron.utils.text import sequence_to_text
 from tacotron.utils import plot, ValueWindow

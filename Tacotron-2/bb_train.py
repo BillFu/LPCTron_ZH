@@ -4,7 +4,7 @@ from tacotron.train import tacotron_train
 from wavenet_vocoder.train import wavenet_train
 from tacotron.synthesize import tacotron_synthesize
 from infolog import log
-from hparams import hparams
+from my_hparams import hparams
 import os
 import infolog
 from time import sleep
