@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf 
 
 
-# _batches_per_group = 32  ???
+_batches_per_group = 32
 
 class Feeder:
     """
@@ -122,7 +122,7 @@ class Feeder:
 
         text = meta[5]  #train.txt it is text sentences meta[0] = audio/f32 meta[1] = mel meta[2] = linear
 
-        input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
+        input_data = np.asarray(text_to_sequence(text), dtype=np.int32)
         mel_target = np.fromfile(os.path.join(self._audio_dir, meta[0]), dtype='float32')
         mel_target = np.resize(mel_target, (-1, self._hparams.num_mels))
         #Create parallel sequences containing zeros to represent a non finished sequence
@@ -187,7 +187,7 @@ class Feeder:
 
         text = meta[5]
 
-        input_data = np.asarray(text_to_sequence(text, self._cleaner_names), dtype=np.int32)
+        input_data = np.asarray(text_to_sequence(text), dtype=np.int32)
         mel_target = np.fromfile(os.path.join(self._audio_dir, meta[0]), dtype='float32')
         mel_target = np.resize(mel_target, (-1, self._hparams.num_mels))
         #Create parallel sequences containing zeros to represent a non finished sequence
