@@ -1,6 +1,6 @@
 import argparse
 import tensorflow as tf 
-from tacotron.train import tacotron_train
+from tacotron.new_train import tacotron_train
 from wavenet_vocoder.train import wavenet_train
 from tacotron.synthesize import tacotron_synthesize
 from infolog import log
