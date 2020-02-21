@@ -1,5 +1,5 @@
 #wav->s16(pcm)->to npy as meta[0] audio file
-#audio-LJ024-0006.npy 
+#audio-LJ024-0006.npy
 
 PCM_DIR=../dataset/biaobei/pcms
 F32_DIR=../dataset/biaobei/f32
@@ -13,7 +13,7 @@ for i in $PCM_DIR/*.s16
 do
   f32_file=${F32_DIR}/$(basename "$i" | cut -d. -f1).npy
   echo $f32_file
-  ../LPCNet/dump_data -test $i $f32_file
+  ../LPCNet/dump_data_t2 -test $i $f32_file
 done
 
 #Original Tacotron Training is done with Text and Audio. But when we integrate with LPCNET training has to done with Text and F32/NPY
