@@ -1,0 +1,2 @@
+python3 
+--input_dir=dataset/training_data --tacotron_input=dataset/training_data/train.txt
