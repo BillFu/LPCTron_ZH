@@ -1,5 +1,7 @@
 .idea/
 
+logs-Tacotron
+
 LPCNet/src/celt_lpc.o
 LPCNet/src/freq.o
 LPCNet/src/kiss_fft.o

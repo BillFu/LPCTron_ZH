@@ -130,7 +130,7 @@ hparams = hparam.HParams(
     tacotron_random_seed = 5339, #Determines initial graph and operations (i.e: model) random state for reproducibility
     tacotron_swap_with_cpu = False, #Whether to use cpu as support to gpu for decoder computation (Not recommended: may cause major slowdowns! Only use when critical!)
 
-    tacotron_batch_size = 64, #number of training samples on each training steps
+    tacotron_batch_size = 32, #number of training samples on each training steps
     tacotron_reg_weight = 1e-6, #regularization weight (for L2 regularization)
     tacotron_scale_regularization = True, #Whether to rescale regularization weight to adapt for outputs range (used when reg_weight is high and biasing the model)
 
