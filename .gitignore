@@ -1,6 +1,8 @@
 .idea/
 
-logs-Tacotron
+logs-Tacotron/
+
+step*.wav
 
 LPCNet/src/celt_lpc.o
 LPCNet/src/freq.o
