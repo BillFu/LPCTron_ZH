@@ -276,21 +276,23 @@ def train(log_dir, args, hparams):
                             ])
 
                     #save predicted mel spectrogram to disk (debug)
+                    """
                     mel_filename = 'mel-prediction-step-{}.npy'.format(step)
                     np.save(os.path.join(mel_dir, mel_filename), mel_prediction.T, allow_pickle=False)
 
                     #save griffin lim inverted wav for debug (mel -> wav)
                     wav = audio.inv_mel_spectrogram(mel_prediction.T, hparams)
                     audio.save_wav(wav, os.path.join(wav_dir, 'step-{}-wave-from-mel.wav'.format(step)), sr=hparams.sample_rate)
+                    """
 
                     #save alignment plot to disk (control purposes)
-                    #plot.plot_alignment(alignment, os.path.join(plot_dir, 'step-{}-align.png'.format(step)),
-                    #    info='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step, loss),
-                    #    max_len=target_length // hparams.outputs_per_step)
+                    plot.plot_alignment(alignment, os.path.join(plot_dir, 'step-{}-align.png'.format(step)),
+                        info='{}, {}, step={}, loss={:.5f}'.format(args.model, time_string(), step, loss),
+                        max_len=target_length // hparams.outputs_per_step)
                     #save real and predicted mel-spectrogram plot to disk (control purposes)
-                    #plot.plot_spectrogram(mel_prediction, os.path.join(plot_dir, 'step-{}-mel-spectrogram.png'.format(step)),
-                    #    info='{}, {}, step={}, loss={:.5}'.format(args.model, time_string(), step, loss), target_spectrogram=target,
-                    #$    max_len=target_length)
+                    plot.plot_spectrogram(mel_prediction, os.path.join(plot_dir, 'step-{}-mel-spectrogram.png'.format(step)),
+                        info='{}, {}, step={}, loss={:.5}'.format(args.model, time_string(), step, loss), target_spectrogram=target,
+                        max_len=target_length)
                     log('Input at step {}: {}'.format(step, sequence_to_text(input_seq)))
 
             log('Tacotron training complete after {} global steps!'.format(args.tacotron_train_steps))
