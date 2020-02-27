@@ -38,9 +38,9 @@ hparams = hparam.HParams(
     #frame_shift_ms = 12.5,
 
     #M-AILABS (and other datasets) trim params
-    trim_fft_size = 512,
-    trim_hop_size = 128,
-    trim_top_db = 60,
+    trim_fft_size = 128, #512,
+    trim_hop_size = 64,  #128,
+    trim_top_db = 40, #60,
 
     #Mel and Linear spectrograms normalization/scaling and clipping
     signal_normalization = True,
