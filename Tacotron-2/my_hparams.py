@@ -16,7 +16,7 @@ hparams = hparam.HParams(
 
     #Audio
     num_mels = 20, #Number of mel-spectrogram channels and local conditioning dimensionality
-    num_freq = 513, # (= n_fft / 2 + 1) only used when adding linear spectrograms post processing network
+    num_freq = 257, # 513, # (= n_fft / 2 + 1) only used when adding linear spectrograms post processing network
     rescale = True, #Whether to rescale audio prior to preprocessing
     rescaling_max = 0.999, #Rescaling value
     trim_silence = True, #Whether to clip silence in Audio (at beginning and end of audio only, not the middle)
