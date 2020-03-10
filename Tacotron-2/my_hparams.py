@@ -30,10 +30,10 @@ hparams = hparam.HParams(
     silence_threshold=2, #silence threshold used for sound trimming for wavenet preprocessing
 
     #Mel spectrogram
-    n_fft = 1024, #Extra window size is filled with 0 paddings to match this parameter
-    hop_size = 256, #For 22050Hz, 275 ~= 12.5 ms
-    win_size = None, #For 22050Hz, 1100 ~= 50 ms (If None, win_size = n_fft)
-    sample_rate = 22050, #22050 Hz (corresponding to ljspeech dataset)
+    n_fft = 512, # 1024, #Extra window size is filled with 0 paddings to match this parameter
+    hop_size = 128, # 256, #For 22050Hz, 275 ~= 12.5 ms
+    win_size = 512, #For 22050Hz, 1100 ~= 50 ms (If None, win_size = n_fft)
+    sample_rate = 16000,   #22050, #22050 Hz (corresponding to ljspeech dataset)
     frame_shift_ms = None,
     #frame_shift_ms = 12.5,
 

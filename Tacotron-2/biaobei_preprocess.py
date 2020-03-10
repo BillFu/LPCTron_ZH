@@ -51,7 +51,7 @@ def main():
 	parser.add_argument('--book', default='northandsouth')
 	parser.add_argument('--output', default='training_data')
 	parser.add_argument('--n_jobs', type=int, default=cpu_count())
-	# parser.add_argument('--wave_dir', default='input wave files dir')
+	parser.add_argument('--in_wave_dir', default='input wave files dir')
 	parser.add_argument('--anno_file', default='ipa annotation file')
 	args = parser.parse_args()
 
@@ -61,10 +61,10 @@ def main():
 	assert args.merge_books in ('False', 'True')
 
 	# run_preprocess(args, modified_hp)
-	input_folder = os.path.join(args.base_dir, args.dataset) # where .wav files are stored
+	# input_folder = os.path.join(args.base_dir, args.dataset) # where .wav files are stored
 	output_folder = os.path.join(args.base_dir, args.output)
 	os.makedirs(output_folder, exist_ok=True)
-	preprocess(args, input_folder, args.anno_file, output_folder, hparams)
+	preprocess(args, args.in_wave_dir, args.anno_file, output_folder, hparams)
 
 
 if __name__ == '__main__':

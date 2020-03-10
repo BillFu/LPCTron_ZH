@@ -4,8 +4,8 @@ import librosa.filters
 import os
 
 
-def trim_sil(in_wav_file, out_wav_file, trim_top_db, trim_fft_size, trim_hop_size):
-    wav, sr = librosa.load(in_wav_file)
+def trim_sil(in_wav_file, sr0, out_wav_file, trim_top_db, trim_fft_size, trim_hop_size):
+    wav, sr = librosa.load(in_wav_file, sr=sr0)
     wav_trimmed, _ = librosa.effects.trim(wav, top_db=trim_top_db, frame_length=trim_fft_size,
                 hop_length=trim_hop_size)
     librosa.output.write_wav(out_wav_file, wav_trimmed, sr)
@@ -31,6 +31,7 @@ def getListOfWavFiles(dirName):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_wav_dir', default='')
+    parser.add_argument('--in_sr', type=int, default=16000)
     parser.add_argument('--out_wav_dir', default='')
     args = parser.parse_args()
 
@@ -46,7 +47,7 @@ def main():
     for in_file_full_path, in_file_base in zip(all_in_files, all_in_files_base):
         out_wav_full_Path = os.path.join(args.out_wav_dir, in_file_base)
         print(i)
-        trim_sil(in_file_full_path, out_wav_full_Path,
+        trim_sil(in_file_full_path, args.in_sr, out_wav_full_Path,
             trim_top_db, trim_fft_size, trim_hop_size)
         i += 1
 

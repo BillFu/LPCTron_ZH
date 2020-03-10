@@ -18,7 +18,7 @@ for i in ${TRIM_WAV_DIR}/*.wav
 do
   s16_file=${PCM_DIR}/audio-$(basename "$i" | cut -d. -f1).s16
   echo $s16_file
-  sox $i -r 22050 -c 1 -t sw - > $s16_file
+  sox $i -r 16000 -c 1 -t sw - > $s16_file
 done
 
 # PCM(S16) to F32/NPY

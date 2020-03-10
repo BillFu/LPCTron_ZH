@@ -148,6 +148,13 @@ def _process_utterance(mel_dir, linear_dir, out_wav_dir, wav_file, index, in_wav
 
 	# Zero pad for quantized signal
 	out = np.pad(out, (l, r), mode='constant', constant_values=constant_values)
+
+	"""
+	print("len(out): {}".format(len(out)))
+	print("mel_frames: {}".format(mel_frames))
+	hop_size0 = audio.get_hop_size(hparams)
+	print("hop_size0: {}".format(hop_size0))
+	"""
 	assert len(out) >= mel_frames * audio.get_hop_size(hparams)
 
 	# time resolution adjustement
