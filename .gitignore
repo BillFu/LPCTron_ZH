@@ -1,5 +1,7 @@
 .idea/
 
+dataset/.DS_Store
+
 logs-Tacotron/
 
 step*.wav
