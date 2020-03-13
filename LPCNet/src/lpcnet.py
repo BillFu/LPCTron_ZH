@@ -112,7 +112,9 @@ class PCMInit(Initializer):
             'seed': self.seed
         }
 
-def new_lpcnet_model(rnn_units1=384, rnn_units2=16, nb_used_features = 38, use_gpu=True):
+def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
+                     nb_used_features = 38,
+                     use_gpu=True):
     pcm = Input(shape=(None, 2))
     exc = Input(shape=(None, 1))
     feat = Input(shape=(None, nb_used_features))
