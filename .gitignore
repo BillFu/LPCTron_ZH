@@ -2,6 +2,8 @@
 
 dataset/.DS_Store
 
+.DS_Store
+
 logs-Tacotron/
 
 step*.wav
