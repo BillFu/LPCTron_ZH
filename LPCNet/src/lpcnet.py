@@ -113,7 +113,7 @@ class PCMInit(Initializer):
         }
 
 def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
-                     nb_used_features = 38,
+                     nb_used_features=38,
                      use_gpu=True):
     pcm = Input(shape=(None, 2))
     exc = Input(shape=(None, 1))
