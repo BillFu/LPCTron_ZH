@@ -2,7 +2,7 @@
 
 # Train a LPCNet model (note not a Wavenet model)
 
-import lpcnet
+from .lpcnet import new_lpcnet_model
 import sys
 import numpy as np
 from keras.optimizers import Adam
@@ -27,8 +27,8 @@ set_session(tf.Session(config=config))
 nb_epochs = 120
 
 # Try reducing batch_size if you run out of memory on your GPU
-batch_size  = 64
-model, _, _ = lpcnet.new_lpcnet_model()
+batch_size = 64
+model, _, _ = new_lpcnet_model()
 
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
