@@ -16,7 +16,7 @@ from keras.backend.tensorflow_backend import set_session
 
 from .save_model_new import save_model
 from .train_val_tb import TrainValTensorBoard
-from .lpcnet import new_lpcnet_model, Sparsify
+from .lpcnet_new import new_lpcnet_model, Sparsify
 
 
 if __name__ == '__main__':
@@ -54,22 +54,25 @@ if __name__ == '__main__':
 	config.gpu_options.per_process_gpu_memory_fraction = 0.9
 	set_session(tf.Session(config=config))
 
-	data = np.fromfile(pcm_file, dtype='uint8')
-	nb_frames = len(data) // (4 * pcm_chunk_size)
+	pcm_data = np.fromfile(pcm_file, dtype='uint8')
+	nb_frames = len(pcm_data) // (4 * pcm_chunk_size)
 
 	features = np.fromfile(feature_file, dtype='float32')
 
 	# limit to discrete number of frames
-	data = data[:nb_frames * 4 * pcm_chunk_size]
+	pcm_data = pcm_data[:nb_frames * 4 * pcm_chunk_size]
+	print("shape of pcm_data: {}".format(pcm_data.shape))
+
 	features = features[:nb_frames * feature_chunk_size * nb_features]
-
+	print("shape of features before reshape: {}".format(features.shape))
 	features = np.reshape(features, (nb_frames * feature_chunk_size, nb_features))
+	print("shape of features after reshape: {}".format(features.shape))
 
-	sig = np.reshape(data[0::4], (nb_frames, pcm_chunk_size, 1))
-	pred = np.reshape(data[1::4], (nb_frames, pcm_chunk_size, 1))
-	in_exc = np.reshape(data[2::4], (nb_frames, pcm_chunk_size, 1))
-	out_exc = np.reshape(data[3::4], (nb_frames, pcm_chunk_size, 1))
-	del data
+	sig = np.reshape(pcm_data[0::4], (nb_frames, pcm_chunk_size, 1))
+	pred = np.reshape(pcm_data[1::4], (nb_frames, pcm_chunk_size, 1))
+	in_exc = np.reshape(pcm_data[2::4], (nb_frames, pcm_chunk_size, 1))
+	out_exc = np.reshape(pcm_data[3::4], (nb_frames, pcm_chunk_size, 1))
+	del pcm_data
 
 	print("ulaw std = ", np.std(out_exc))
 
