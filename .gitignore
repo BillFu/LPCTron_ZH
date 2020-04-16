@@ -8,12 +8,9 @@ logs-Tacotron/
 
 step*.wav
 
-LPCNet/src/celt_lpc.o
-LPCNet/src/freq.o
-LPCNet/src/kiss_fft.o
-LPCNet/src/lpcnet.o
-LPCNet/src/nnet.o
-LPCNet/src/nnet_data.o
+LPCNet/features.f32
+LPCNet/data.u8
+
 LPCNet/src/*.o
 LPCNet/test_lpcnet
 

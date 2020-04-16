@@ -27,14 +27,13 @@
 
 import math
 from keras.models import Model
-from keras.layers import Input, GRU, CuDNNGRU, Dense, Embedding, Reshape, Concatenate, Lambda, Conv1D, Multiply, Add, Bidirectional, MaxPooling1D, Activation
+from keras.layers import Input, GRU, CuDNNGRU, Dense, Embedding, Reshape, \
+    Concatenate, Lambda, Conv1D, Add
 from keras import backend as K
 from keras.initializers import Initializer
 from keras.callbacks import Callback
 from .mdense_new import MDense
 import numpy as np
-import h5py
-import sys
 
 pcm_bits = 8
 embed_size = 128
@@ -128,11 +127,13 @@ def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
 
     embed = Embedding(256, embed_size, embeddings_initializer=PCMInit(), name='embed_sig')
     cpcm = Reshape((-1, embed_size*2))(embed(pcm))
+
     embed2 = Embedding(256, embed_size, embeddings_initializer=PCMInit(), name='embed_exc')
     cexc = Reshape((-1, embed_size))(embed2(exc))
 
     pembed = Embedding(256, 64, name='embed_pitch')
-    cat_feat = Concatenate()([feat, Reshape((-1, 64))(pembed(pitch))])
+    cpitch = Reshape((-1, 64))(pembed(pitch))
+    cat_feat = Concatenate()([feat, cpitch])
     
     cfeat = fconv2(fconv1(cat_feat))
 
@@ -152,9 +153,10 @@ def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
         rnn2 = GRU(rnn_units2, return_sequences=True, return_state=True, recurrent_activation="sigmoid", reset_after='true', name='gru_b')
 
     rnn_in = Concatenate()([cpcm, cexc, rep(cfeat)])
-    md = MDense(pcm_levels, activation='softmax', name='dual_fc')
     gru_out1, _ = rnn(rnn_in)
     gru_out2, _ = rnn2(Concatenate()([gru_out1, rep(cfeat)]))
+
+    md = MDense(pcm_levels, activation='softmax', name='dual_fc')
     ulaw_prob = md(gru_out2)
     
     model = Model([pcm, exc, feat, pitch], ulaw_prob)
@@ -162,6 +164,7 @@ def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
     model.rnn_units2 = rnn_units2
     model.nb_used_features = nb_used_features
 
+    """
     encoder = Model([feat, pitch], cfeat)
     
     dec_rnn_in = Concatenate()([cpcm, cexc, dec_feat])
@@ -169,5 +172,9 @@ def new_lpcnet_model(rnn_units1=384, rnn_units2=16,
     dec_gru_out2, state2 = rnn2(Concatenate()([dec_gru_out1, dec_feat]), initial_state=dec_state2)
     dec_ulaw_prob = md(dec_gru_out2)
 
-    decoder = Model([pcm, exc, dec_feat, dec_state1, dec_state2], [dec_ulaw_prob, state1, state2])
-    return model, encoder, decoder
+    decoder = Model([pcm, exc, dec_feat, dec_state1, dec_state2],
+                    [dec_ulaw_prob, state1, state2])
+    """
+    # return model, encoder, decoder
+    return model
+
