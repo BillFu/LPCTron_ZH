@@ -47,3 +47,6 @@ dataset/training_procedure
 patch.diff
 test.s16
 test.wav
+LPCNet/features.f32
+LPCNet/data.u8
+LPCNet/data.u8
