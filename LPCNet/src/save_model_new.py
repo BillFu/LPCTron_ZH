@@ -16,8 +16,8 @@ class save_model(Callback):
             #modelfile =  "weights.{epoch:02d}-{val_loss:.2f}.hdf5"
             self.model.save(modelfile)
         #ModelCheckpoint(filepath='/tmp/newweightsi_{epoch:02d}.hdf5', monitor='acc',verbose=1, period=1 ,save_best_only=False,mode='max')
-        f= open("checkpoint","w+")
-        f1= open("checkpoint.log","a")
+        f = open("checkpoint","w+")
+        f1 = open("checkpoint.log","a")
         f1.write(modelfile)
         f1.write("\n")
         f.write(modelfile)

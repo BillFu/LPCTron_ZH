@@ -59,8 +59,27 @@ def load_data(pcm_file, feature_file,
 	features = features[:, :, :nb_used_features]
 	features[:, :, 18:36] = 0
 
-	periods = (.1 + 50 * features[:, :, 36:37] + 100).astype('int16')
+	# it's wrong! we will get a 2D array in this way,
+	# however, a 3D array is required.
+	# raw_pitch = features[:, :, 36]
+
+	raw_pitch = features[:, :, 36:37]
+
+	max_raw_pitch = np.max(raw_pitch) + 0.5
+	min_raw_pitch = np.min(raw_pitch) - 0.5
+	print("max_raw_pitch: {}".format(max_raw_pitch))
+	print("min_raw_pitch: {}".format(min_raw_pitch))
+
+	periods = (raw_pitch - min_raw_pitch)*255.0/(max_raw_pitch - min_raw_pitch).astype('int16')
+	# periods = (.1 + 50 * features[:, :, 36:37] + 100).astype('int16')
+
+	"""
 	print("shape of periods: {}".format(periods.shape))
+	max_period = np.max(periods)
+	min_period = np.min(periods)
+	print("max of periods: {}".format(max_period))
+	print("min of periods: {}".format(min_period))
+	"""
 
 	signal_predict = np.concatenate([signal, predict], axis=-1)
 	print("shape of in_data: {}".format(signal_predict.shape))
@@ -106,7 +125,7 @@ def main():
 				  nb_features, nb_used_features)
 
 	# model, _, _ = new_lpcnet_model()
-	model = new_lpcnet_model()
+	model = new_lpcnet_model(use_gpu=False)  # !!!
 
 	model.compile(optimizer='adam',
 				loss='sparse_categorical_crossentropy',
