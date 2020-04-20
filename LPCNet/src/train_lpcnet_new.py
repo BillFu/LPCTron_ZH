@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 # Train a LPCNet model (note not a Wavenet model)
+import os
 
 import numpy as np
 import argparse
@@ -88,6 +89,11 @@ def load_data(pcm_file, feature_file,
 
 
 def main():
+	os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
+
+	# The GPU id to use, usually either "0" or "1";
+	os.environ["CUDA_VISIBLE_DEVICES"] = "0";
+
 	parser = argparse.ArgumentParser(description="train the lpcnet model.")
 
 	parser.add_argument(
@@ -125,7 +131,7 @@ def main():
 				  nb_features, nb_used_features)
 
 	# model, _, _ = new_lpcnet_model()
-	model = new_lpcnet_model(use_gpu=False)  # !!!
+	model = new_lpcnet_model(use_gpu=True)  # !!!
 
 	model.compile(optimizer='adam',
 				loss='sparse_categorical_crossentropy',
