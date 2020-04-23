@@ -31,7 +31,7 @@ from keras.layers import Input, GRU, CuDNNGRU, Dense, Embedding, Reshape, Concat
 from keras import backend as K
 from keras.initializers import Initializer
 from keras.callbacks import Callback
-from mdense import MDense
+from .mdense import MDense
 import numpy as np
 import h5py
 import sys
