@@ -8,12 +8,14 @@ set(SOURCE_FILES dump_data.c freq.c kiss_fft.c pitch.c celt_lpc.c)
 
 set(MINI_SOURCE_FILES dump_data_mini.c freq.c kiss_fft.c pitch.c celt_lpc.c)
 
+set(LPCNET_INFER_FILES lpcnet_infer.c lpcnet.c nnet.c nnet_data.c freq.c kiss_fft.c pitch.c celt_lpc.c)
+
 # add_definitions(-DTACOTRON2)
 
-add_executable (dump_data_t2 ${SOURCE_FILES})
-add_executable (dump_data_lpcnet ${SOURCE_FILES})
-
-add_executable (dump_data_lpcnet_mini ${MINI_SOURCE_FILES})
+add_executable(dump_data_t2 ${SOURCE_FILES})
+add_executable(dump_data_lpcnet ${SOURCE_FILES})
+add_executable(dump_data_lpcnet_mini ${MINI_SOURCE_FILES})
+add_executable(lpcnet_infer ${LPCNET_INFER_FILES})
 
 target_compile_definitions(dump_data_t2 PRIVATE TACOTRON2=1)
 target_compile_definitions(dump_data_lpcnet PRIVATE TACOTRON2=0)
@@ -23,3 +25,5 @@ target_compile_definitions(dump_data_lpcnet_mini PRIVATE TACOTRON2=0)
 target_link_libraries(dump_data_t2 m)
 target_link_libraries(dump_data_lpcnet m)
 target_link_libraries(dump_data_lpcnet_mini m)
+target_link_libraries(lpcnet_infer m)
+
