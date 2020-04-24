@@ -6,6 +6,10 @@ dataset/.DS_Store
 
 logs-Tacotron/
 
+c_tools/build/
+c_tools/cmake-build-release/
+LPCNet/__pycache__/
+
 step*.wav
 
 LPCNet/features.f32
