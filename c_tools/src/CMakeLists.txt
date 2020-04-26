@@ -21,7 +21,7 @@ add_executable(lpcnet_infer ${LPCNET_INFER_FILES})
 target_compile_definitions(dump_data_t2 PRIVATE TACOTRON2=1)
 target_compile_definitions(dump_data_lpcnet PRIVATE TACOTRON2=0)
 target_compile_definitions(dump_data_lpcnet_mini PRIVATE TACOTRON2=0)
-target_compile_definitions(lpcnet_infer PRIVATE __AVX__=1)
+target_compile_definitions(lpcnet_infer PRIVATE __AVX__=1 TACOTRON2=1)
 
 target_compile_options(lpcnet_infer
         PRIVATE "-mavx2"
