@@ -1,15 +1,14 @@
 import argparse
-import os
-
-import time
+# import os
+# import time
 
 import tensorflow as tf
-
-from .my_hparams import hparams
 # from tqdm import tqdm
 
+from .my_hparams import hparams
+
 from .infolog import log
-# from my_synthesizer import Synthesizer
+from .tacotron.synthesizer import Synthesizer
 
 def load_sentences(input_text_file):
 	with open(input_text_file, 'rb') as f:
@@ -17,20 +16,8 @@ def load_sentences(input_text_file):
 
 	return sentences
 
+
 """
-## construct the basename for the wave file that would to be synthesized
-def construct_basename(prefix, start_index,
-						batch_size, batch_index, sentence_index):
-	id = batch_index * batch_size + sentence_index
-
-	if prefix in (None, ''):
-		clip_file_name = '%06d' % (start_index + id)
-	else:
-		basename = '%s%06d' % (prefix, start_index + id)
-
-	return basename
-
-
 def run_eval(args, checkpoint_path, hparams, sentences):
 	eval_dir = os.path.join(args.output_dir, 'eval')
 	log_dir = os.path.join(args.output_dir, 'logs-eval')
@@ -71,6 +58,7 @@ def run_eval(args, checkpoint_path, hparams, sentences):
 	return eval_dir
 """
 
+
 def load_model(model_path):
 	try:
 		checkpoint_path = tf.train.get_checkpoint_state(model_path).model_checkpoint_path
@@ -78,20 +66,13 @@ def load_model(model_path):
 	except:
 		raise RuntimeError('Failed to load model checkpoint at {}'.format(model_path))
 
+	synthesizer = Synthesizer()
+	synthesizer.load(checkpoint_path, hparams)
+	return synthesizer
 
-# def synthesize(args, hparams, sentences):
 
-	"""
-	if hparams.tacotron_synthesis_batch_size < hparams.tacotron_num_gpus:
-		raise ValueError('Defined synthesis batch size {} is smaller than minimum required {} (num_gpus)! Please verify your synthesis batch size choice.'.format(
-			hparams.tacotron_synthesis_batch_size, hparams.tacotron_num_gpus))
+def inference(sentence, sentence_id, synthesizer):
 
-	if hparams.tacotron_synthesis_batch_size % hparams.tacotron_num_gpus != 0:
-		raise ValueError('Defined synthesis batch size {} is not a multiple of {} (num_gpus)! Please verify your synthesis batch size choice!'.format(
-			hparams.tacotron_synthesis_batch_size, hparams.tacotron_num_gpus))
-	"""
-
-	# return run_eval(args, checkpoint_path, hparams, sentences)
 
 
 def main():
@@ -115,12 +96,15 @@ def main():
 		print(arg, getattr(args, arg))
 	print("------------------------------------------------------------------------")
 
-	sentences = load_sentences(args.input_text_file)
+	# sentences = load_sentences(args.input_text_file)
 
-	load_model(args.checkpoint_dir)
+	synthesizer = load_model(args.checkpoint_dir)
 
-	# _ = synthesize(args, hparams, sentences)
-	
+	test_sentence = "兰州的黄河铁桥已经有一百年的历史了。"
+	test_sentence_id = "1001"
+	inference(test_sentence, test_sentence_id, synthesizer)
+
+
 
 if __name__ == '__main__':
 	main()
