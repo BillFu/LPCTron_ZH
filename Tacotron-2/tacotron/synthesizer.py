@@ -1,16 +1,17 @@
 import os
 import numpy as np
 import tensorflow as tf
-from librosa import effects
-from tacotron.models import create_model
-from tacotron.utils.text import text_to_sequence
-from tacotron.utils import plot
+from .models import create_model
+from .utils.text import text_to_sequence
+"""
+from .utils import plot
 from datasets import audio
 from datetime import datetime
 import sounddevice as sd
 import pyaudio
 import wave
-from infolog import log
+"""
+from ..infolog import log
 
 
 class Synthesizer:

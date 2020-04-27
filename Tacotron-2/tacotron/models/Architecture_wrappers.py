@@ -12,7 +12,7 @@ from tensorflow.python.util import nest
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import tensor_array_ops
 from tensorflow.python.framework import tensor_shape
-from tacotron.models.attention import _compute_attention
+from .attention import _compute_attention
 
 _zero_state_tensors = rnn_cell_impl._zero_state_tensors
 

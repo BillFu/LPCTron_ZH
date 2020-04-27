@@ -9,6 +9,7 @@ from .my_hparams import hparams
 
 from .infolog import log
 from .tacotron.synthesizer import Synthesizer
+from .frontend.hz2ipa import cal_ipa_seq
 
 def load_sentences(input_text_file):
 	with open(input_text_file, 'rb') as f:
@@ -71,8 +72,9 @@ def load_model(model_path):
 	return synthesizer
 
 
-def inference(sentence, sentence_id, synthesizer):
-
+def inference(sentence_id, hanzi_line, pinyin_line, synthesizer):
+	ipa_seq = cal_ipa_seq(hanzi_line, pinyin_line)
+	print("ipa_seq: {}".format(ipa_seq))
 
 
 def main():
@@ -100,10 +102,13 @@ def main():
 
 	synthesizer = load_model(args.checkpoint_dir)
 
-	test_sentence = "兰州的黄河铁桥已经有一百年的历史了。"
-	test_sentence_id = "1001"
-	inference(test_sentence, test_sentence_id, synthesizer)
+	hz_line = "黑熊闯进王明辉家后院觅食。"
+	py_line = "hei1 xiong2 chuang3 jin4 wang2 ming2 hui1 jia1 hou4 yuan4 mi4 shi2"
+	sentence_id = "1001"
+	print("hz_line: {}".format(hz_line))
+	print("py_line: {}".format(py_line))
 
+	inference(sentence_id, hz_line, py_line, synthesizer)
 
 
 if __name__ == '__main__':

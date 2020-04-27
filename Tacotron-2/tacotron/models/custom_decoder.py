@@ -12,8 +12,7 @@ from tensorflow.python.framework import tensor_shape
 from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
-from tacotron.models.helpers import TacoTrainingHelper, TacoTestHelper
-
+from .helpers import TacoTrainingHelper, TacoTestHelper
 
 
 class CustomDecoderOutput(
