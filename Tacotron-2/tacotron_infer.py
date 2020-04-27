@@ -5,10 +5,10 @@ import time
 
 import tensorflow as tf
 
-# from hparams import hparams, hparams_debug_string
+from .my_hparams import hparams
 # from tqdm import tqdm
 
-# from infolog import log
+from .infolog import log
 # from my_synthesizer import Synthesizer
 
 def load_sentences(input_text_file):
@@ -69,15 +69,19 @@ def run_eval(args, checkpoint_path, hparams, sentences):
 				file.write('|'.join([str(x) for x in elems]) + '\n')
 	log('synthesized mel spectrograms at {}'.format(eval_dir))
 	return eval_dir
+"""
 
-
-def tacotron_synthesize(args, hparams, sentences):
+def load_model(model_path):
 	try:
-		checkpoint_path = tf.train.get_checkpoint_state(args.checkpoint_dir).model_checkpoint_path
-		log('loaded model at {}'.format(checkpoint_path))
+		checkpoint_path = tf.train.get_checkpoint_state(model_path).model_checkpoint_path
+		log('model found at {}'.format(checkpoint_path))
 	except:
-		raise RuntimeError('Failed to load checkpoint at {}'.format(args.checkpoint_dir))
+		raise RuntimeError('Failed to load model checkpoint at {}'.format(model_path))
 
+
+# def synthesize(args, hparams, sentences):
+
+	"""
 	if hparams.tacotron_synthesis_batch_size < hparams.tacotron_num_gpus:
 		raise ValueError('Defined synthesis batch size {} is smaller than minimum required {} (num_gpus)! Please verify your synthesis batch size choice.'.format(
 			hparams.tacotron_synthesis_batch_size, hparams.tacotron_num_gpus))
@@ -85,9 +89,10 @@ def tacotron_synthesize(args, hparams, sentences):
 	if hparams.tacotron_synthesis_batch_size % hparams.tacotron_num_gpus != 0:
 		raise ValueError('Defined synthesis batch size {} is not a multiple of {} (num_gpus)! Please verify your synthesis batch size choice!'.format(
 			hparams.tacotron_synthesis_batch_size, hparams.tacotron_num_gpus))
+	"""
 
-	return run_eval(args, checkpoint_path, hparams, sentences)
-"""
+	# return run_eval(args, checkpoint_path, hparams, sentences)
+
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -112,7 +117,9 @@ def main():
 
 	sentences = load_sentences(args.input_text_file)
 
-	# _ = tacotron_synthesize(args, hparams, sentences)
+	load_model(args.checkpoint_dir)
+
+	# _ = synthesize(args, hparams, sentences)
 	
 
 if __name__ == '__main__':

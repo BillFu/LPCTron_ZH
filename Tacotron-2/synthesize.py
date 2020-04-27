@@ -1,91 +1,141 @@
 import argparse
-from tacotron.synthesize import tacotron_synthesize
-#from wavenet_vocoder.synthesize import wavenet_synthesize
-from infolog import log
-from hparams import hparams
-from warnings import warn
 import os
+import re
+from hparams import hparams, hparams_debug_string
+from tacotron.synthesizer import Synthesizer
+import time
+from tqdm import tqdm
+from time import sleep
+from infolog import log
+import tensorflow as tf 
+import numpy as np
 
 
-def prepare_run(args):
-    modified_hp = hparams.parse(args.hparams)
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-    run_name = args.name or args.tacotron_name or args.model
-    taco_checkpoint = os.path.join('logs-' + run_name, 'taco_' + args.checkpoint)
-
-    run_name = args.name or args.wavenet_name or args.model
-    wave_checkpoint = os.path.join('logs-' + run_name, 'wave_' + args.checkpoint)
-    return taco_checkpoint, wave_checkpoint, modified_hp
-
-def get_sentences(args):
-    if args.text_list != '':
-        with open(args.text_list, 'rb') as f:
-            sentences = list(map(lambda l: l.decode("utf-8")[:-1], f.readlines()))
-    else:
-        sentences = hparams.sentences
-    return sentences
-
-def synthesize(args, hparams, taco_checkpoint, wave_checkpoint, sentences):
-    log('Running End-to-End TTS Evaluation. Model: {}'.format(args.name or args.model))
-    log('Synthesizing mel-spectrograms from text..')
-    wavenet_in_dir = tacotron_synthesize(args, hparams, taco_checkpoint, sentences)
-    log('Synthesizing audio from mel-spectrograms.. (This may take a while)')
-    wavenet_synthesize(args, hparams, wave_checkpoint)
-    log('Tacotron-2 TTS synthesis complete!')
+def generate_fast(model, text):
+    model.synthesize(text, None, None, None, None)
 
 
+def run_live(args, checkpoint_path, hparams):
+    #Log to Terminal without keeping any records in files
+    log(hparams_debug_string())
+    synth = Synthesizer()
+    synth.load(checkpoint_path, hparams)
 
-def main():
-    accepted_modes = ['eval', 'synthesis', 'live']
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint', default='pretrained/', help='Path to model checkpoint')
-    parser.add_argument('--hparams', default='',
-        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-    parser.add_argument('--name', help='Name of logging directory if the two models were trained together.')
-    parser.add_argument('--tacotron_name', help='Name of logging directory of Tacotron. If trained separately')
-    parser.add_argument('--wavenet_name', help='Name of logging directory of WaveNet. If trained separately')
-    parser.add_argument('--model', default='Tacotron-2')
-    parser.add_argument('--input_dir', default='training_data/', help='folder to contain inputs sentences/targets')
-    parser.add_argument('--mels_dir', default='tacotron_output/eval/', help='folder to contain mels to synthesize audio from using the Wavenet')
-    parser.add_argument('--output_dir', default='output/', help='folder to contain synthesized mel spectrograms')
-    parser.add_argument('--mode', default='eval', help='mode of run: can be one of {}'.format(accepted_modes))
-    parser.add_argument('--GTA', default='True', help='Ground truth aligned synthesis, defaults to True, only considered in synthesis mode')
-    parser.add_argument('--text_list', default='', help='Text file contains list of texts to be synthesized. Valid if mode=eval')
-    args = parser.parse_args()
-    
-    accepted_models = ['Tacotron', 'WaveNet', 'Both', 'Tacotron-2']
+    #Generate fast greeting message
+    greetings = 'Hello, Welcome to the Live testing tool. Please type a message and I will try to read it!'
+    log(greetings)
+    generate_fast(synth, greetings)
 
-    if args.model not in accepted_models:
-        raise ValueError('please enter a valid model to synthesize with: {}'.format(accepted_models))
+    #Interaction loop
+    while True:
+        try:
+            text = input()
+            generate_fast(synth, text)
 
-    if args.mode not in accepted_modes:
-        raise ValueError('accepted modes are: {}, found {}'.format(accepted_modes, args.mode))
+        except KeyboardInterrupt:
+            leave = 'Thank you for testing our features. see you soon.'
+            log(leave)
+            generate_fast(synth, leave)
+            sleep(2)
+            break
 
-    if args.mode=='live' and args.model=='Wavenet':
-        raise RuntimeError('Wavenet vocoder cannot be tested live due to its slow generation. Live only works with Tacotron!')
-
-    if args.GTA not in ('True', 'False'):
-        raise ValueError('GTA option must be either True or False')
+def run_eval(args, checkpoint_path, output_dir, hparams, sentences):
+    eval_dir = os.path.join(output_dir, 'eval')
+    log_dir = os.path.join(output_dir, 'logs-eval')
 
     if args.model in ('Both', 'Tacotron-2'):
-        if args.mode == 'live':
-            warn('Requested a live evaluation with Tacotron-2, Wavenet will not be used!')
-        if args.mode == 'synthesis':
-            raise ValueError('I don\'t recommend running WaveNet on entire dataset.. The world might end before the synthesis :) (only eval allowed)')
+        assert os.path.normpath(eval_dir) == os.path.normpath(args.mels_dir) #mels_dir = wavenet_input_dir
+    
+    #Create output path if it doesn't exist
+    os.makedirs(eval_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
+    os.makedirs(os.path.join(log_dir, 'wavs'), exist_ok=True)
+    os.makedirs(os.path.join(log_dir, 'plots'), exist_ok=True)
 
-    taco_checkpoint, wave_checkpoint, hparams = prepare_run(args)
-    sentences = get_sentences(args)
+    log(hparams_debug_string())
+    synth = Synthesizer()
+    synth.load(checkpoint_path, hparams)
 
-    if args.model == 'Tacotron':
-        _ = tacotron_synthesize(args, hparams, taco_checkpoint, sentences)
-    elif args.model == 'WaveNet':
-        wavenet_synthesize(args, hparams, wave_checkpoint)
-    elif args.model in ('Both', 'Tacotron-2'):
-        synthesize(args, hparams, taco_checkpoint, wave_checkpoint, sentences)
+    
+    with open(os.path.join(eval_dir, 'map.txt'), 'w') as file:
+        for i, text in enumerate(tqdm(sentences)):
+            start = time.time()
+            mel_filename = synth.synthesize(text, i+1, eval_dir, log_dir, None)
+            #file.write('{}|{}\n'.format(text, mel_filename))
+            #npy_data = np.load(mel_filename)
+            #npy_data = npy_data.reshape((-1,))
+            #npy_data.tofile("f32_for_lpcnet.f32")
+
+            print("Features f32 file created for text")
+            end = time.time()
+            print(">>>>>LPCNet Feature to PCM Conversion time = {}".format(end-start))	    
+		
+    log('synthesized mel spectrograms at {}'.format(eval_dir))
+    return eval_dir
+
+def run_synthesis(args, checkpoint_path, output_dir, hparams):
+    GTA = (args.GTA == 'True')
+    if GTA:
+        synth_dir = os.path.join(output_dir, 'gta')
+
+        #Create output path if it doesn't exist
+        os.makedirs(synth_dir, exist_ok=True)
     else:
-        raise ValueError('Model provided {} unknown! {}'.format(args.model, accepted_models))
+        synth_dir = os.path.join(output_dir, 'natural')
+
+        #Create output path if it doesn't exist
+        os.makedirs(synth_dir, exist_ok=True)
 
 
-if __name__ == '__main__':
-    main()
+    metadata_filename = os.path.join(args.input_dir, 'train.txt')
+    log(hparams_debug_string())
+    synth = Synthesizer()
+    synth.load(checkpoint_path, hparams, gta=GTA)
+    with open(metadata_filename, encoding='utf-8') as f:
+        metadata = [line.strip().split('|') for line in f]
+        frame_shift_ms = hparams.hop_size / hparams.sample_rate
+        hours = sum([int(x[4]) for x in metadata]) * frame_shift_ms / (3600)
+        log('Loaded metadata for {} examples ({:.2f} hours)'.format(len(metadata), hours))
+
+    log('starting synthesis')
+    mel_dir = os.path.join(args.input_dir, 'mels')
+    wav_dir = os.path.join(args.input_dir, 'audio')
+    with open(os.path.join(synth_dir, 'map.txt'), 'w') as file:
+        for i, meta in enumerate(tqdm(metadata)):
+            text = meta[5]
+            mel_filename = os.path.join(mel_dir, meta[1])
+            wav_filename = os.path.join(wav_dir, meta[0])
+            mel_output_filename = synth.synthesize(text, i+1, synth_dir, None, mel_filename)
+
+            file.write('{}|{}|{}|{}\n'.format(wav_filename, mel_filename, mel_output_filename, text))
+    log('synthesized mel spectrograms at {}'.format(synth_dir))
+    return os.path.join(synth_dir, 'map.txt')
+
+def tacotron_synthesize(args, hparams, checkpoint, sentences=None):
+    output_dir = 'tacotron_' + args.output_dir
+
+    try:
+        checkpoint_path = tf.train.get_checkpoint_state(checkpoint).model_checkpoint_path
+        log('loaded model at {}'.format(checkpoint_path))
+    except AttributeError:
+        #Swap logs dir name in case user used Tacotron-2 for train and Both for test (and vice versa)
+        if 'Both' in checkpoint:
+            checkpoint = checkpoint.replace('Both', 'Tacotron-2')
+        elif 'Tacotron-2' in checkpoint:
+            checkpoint = checkpoint.replace('Tacotron-2', 'Both')
+        else:
+            raise AssertionError('Cannot restore checkpoint: {}, did you train a model?'.format(checkpoint))
+
+        try:
+            #Try loading again
+            checkpoint_path = tf.train.get_checkpoint_state(checkpoint).model_checkpoint_path
+            log('loaded model at {}'.format(checkpoint_path))
+        except:
+            raise RuntimeError('Failed to load checkpoint at {}'.format(checkpoint))
+
+    if args.mode == 'eval':
+        return run_eval(args, checkpoint_path, output_dir, hparams, sentences)
+    elif args.mode == 'synthesis':
+        return run_synthesis(args, checkpoint_path, output_dir, hparams)
+    else:
+        run_live(args, checkpoint_path, hparams)
