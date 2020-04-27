@@ -4,7 +4,7 @@ dataset/.DS_Store
 
 .DS_Store
 
-logs-Tacotron/
+taco_pretrained/
 
 c_tools/build/
 c_tools/cmake-build-release/
