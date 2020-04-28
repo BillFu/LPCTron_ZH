@@ -1,6 +1,6 @@
 
-from utils.ipa_text import text_to_sequence, remove_separator
-from utils.ipa_symbols import symbols
+from .utils.ipa_text import text_to_sequence, remove_separator
+from .utils.ipa_symbols import symbols
 
 
 if __name__ == "__main__":

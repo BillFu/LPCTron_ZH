@@ -2,7 +2,8 @@ import os
 import numpy as np
 import tensorflow as tf
 from .models import create_model
-from .utils.text import text_to_sequence
+from .utils.ipa_text import text_to_sequence
+
 """
 from .utils import plot
 from datasets import audio
@@ -39,38 +40,38 @@ class Synthesizer:
         saver.restore(self.session, checkpoint_path)
 
 
-    def synthesize(self, text, index, out_dir, log_dir, mel_filename):
+    def synthesize(self, ipa_text, out_feature_filename):
         hparams = self._hparams
-        cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
-        seq = text_to_sequence(text, cleaner_names)
+        seq = text_to_sequence(ipa_text)
+
         feed_dict = {
             self.model.inputs: [np.asarray(seq, dtype=np.int32)],
             self.model.input_lengths: np.asarray([len(seq)], dtype=np.int32),
         }
-
+        '''
         if self.gta:
             feed_dict[self.model.mel_targets] = np.load(mel_filename).reshape(1, -1, 80)
-
+        '''
         if self.gta or not hparams.predict_linear:
-            mels, alignment = self.session.run([self.mel_outputs, self.alignment], feed_dict=feed_dict)
-
+            mels, alignment = self.session.run([self.mel_outputs, self.alignment],
+                                               feed_dict=feed_dict)
         else:
-            linear, mels, alignment = self.session.run([self.linear_outputs, self.mel_outputs, self.alignment], feed_dict=feed_dict)
+            linear, mels, alignment = self.session.run(
+                [self.linear_outputs, self.mel_outputs, self.alignment], feed_dict=feed_dict)
             linear = linear.reshape(-1, hparams.num_freq)
 
         mels = mels.reshape(-1, hparams.num_mels) #Thanks to @imdatsolak for pointing this out
 
         #convert checkpoint to frozen model
-        minimal_graph = tf.graph_util.convert_variables_to_constants(self.session, self.session.graph_def, ["model/inference/add"])
+        minimal_graph = tf.graph_util.convert_variables_to_constants(self.session,
+                        self.session.graph_def, ["model/inference/add"])
         tf.train.write_graph(minimal_graph, '.', 'inference_model.pb', as_text=False)
 
         npy_data = mels.reshape((-1,))
-        print(mels)
-        print("==============================================")
-        print(npy_data)
-        text = text.replace (" ", "_")
-        text = text.replace ("?",".")
-        filename=text+'f32'
-        npy_data.tofile(filename)
+        # print(mels)
+        # print("==============================================")
+        # print(npy_data)
+
+        npy_data.tofile(out_feature_filename)
 
         return

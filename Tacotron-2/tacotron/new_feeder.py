@@ -3,8 +3,8 @@ import os
 import threading
 import time
 import traceback
-from tacotron.utils.ipa_text import text_to_sequence
-from infolog import log
+from .utils.ipa_text import text_to_sequence
+from ..infolog import log
 from sklearn.model_selection import train_test_split
 import tensorflow as tf 
 
