@@ -2,6 +2,9 @@
 import os, re
 import argparse
 
+from pypinyin import pinyin, Style
+from .txt2pinyin import pinyin_format
+
 """
 "卡尔普#2陪外孙#1玩滑梯#4。"
 
@@ -305,6 +308,35 @@ def flatten_ipa_seq(ipa_list):
 
 	total_ipa_seq = '$'.join(ipa_str_list)
 	return total_ipa_seq
+
+def hz2py(sentence_cleaned):
+	pinyin_sequence = []
+	## only contains chinese characters, no punction
+
+	pinyin_list = pinyin(sentence_cleaned, style=Style.TONE3)
+	for item in pinyin_list:
+		pinyin_normalized = pinyin_format(item[0])
+		pinyin_sequence.append(pinyin_normalized)
+
+	"""
+	# ------------- fix the pinyin of duoyinzi ----------------------
+	duoyinzi_set = extract_duoyinzi(sentence_cleaned, duoyinzi_in_dict)
+	# print("duoyinzi_set: {}".format(duoyinzi_set))
+
+	for duoyinzi_item in duoyinzi_set:
+		duoyinzi_context = duoyinzi_item[2]
+		correct_pinyin = lookup_duoyinzi_dict(duoyinzi_context, duoyinzi_dict)
+		if correct_pinyin == "":  # no matching found
+			continue
+		else:
+			# need make it formatted
+			correct_pinyin = pinyin_format(correct_pinyin)
+			# print(duoyinzi_item, correct_pinyin)
+			duoyinzi_index = duoyinzi_item[1]
+			pinyin_sequence[duoyinzi_index] = correct_pinyin  # fixing happened here
+	"""
+	return pinyin_sequence
+
 
 # hanzi_line, py_line have been cleaned, containing no new line symbol.
 def cal_ipa_seq(hanzi_line, py_line):
