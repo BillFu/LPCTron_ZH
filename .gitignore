@@ -6,6 +6,8 @@ dataset/.DS_Store
 
 taco_pretrained/
 
+inference_model.pb
+
 c_tools/build/
 c_tools/cmake-build-release/
 LPCNet/__pycache__/
