@@ -9,7 +9,7 @@ from .my_hparams import hparams
 
 from .infolog import log
 from .tacotron.synthesizer import Synthesizer
-from .frontend.hz2ipa import cal_ipa_seq
+from .frontend.hz2ipa import cal_ipa_seq, createCmdPairTuple
 
 def load_sentences(input_text_file):
 	with open(input_text_file, 'rb') as f:
@@ -39,7 +39,6 @@ def inference(output_dir, sentence_id, hanzi_line, pinyin_line, synthesizer):
 	out_feature_filename = os.path.join(output_dir, out_feature_filename)
 	synthesizer.synthesize(ipa_seq, out_feature_filename)
 
-
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--checkpoint_dir',
@@ -63,11 +62,18 @@ def main():
 
 	# sentences = load_sentences(args.input_text_file)
 
+	# don't forget to initialize py2ipa module by calling the following function!!!
+	createCmdPairTuple()
+
 	synthesizer = load_model(args.checkpoint_dir)
 
 	hz_line = "黑熊闯进王明辉家后院觅食。"
 	py_line = "hei1 xiong2 chuang3 jin4 wang2 ming2 hui1 jia1 hou4 yuan4 mi4 shi2"
-	sentence_id = "1001"
+
+	# hz_line = "卡尔普陪外孙玩滑梯。"
+	# py_line = "ka2 er2 pu3 pei2 wai4 sun1 wan2 hua2 ti1"
+
+	sentence_id = "1002"
 	print("hz_line: {}".format(hz_line))
 	print("py_line: {}".format(py_line))
 

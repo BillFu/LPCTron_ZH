@@ -130,20 +130,28 @@ void lpcnet_synthesize(LPCNetState *lpcnet, short *output, const float *features
     float pitch_gain;
     /* FIXME: Remove this -- it's just a temporary hack to match the Python code. */
     static int start = LPC_ORDER+1;
+
     /* FIXME: Do proper rounding once the Python code rounds properly. */
-    pitch = (int)floor(.1 + 50*features[36]+100);
+
+    pitch = (int)floor(.1 + 13.774*features[36]+158.5);
+    if (pitch < 0) pitch = 0;
+    if (pitch > 255) pitch = 255;
+
     pitch_gain = lpcnet->old_gain[FEATURES_DELAY-1];
     memmove(&lpcnet->old_gain[1], &lpcnet->old_gain[0], (FEATURES_DELAY-1)*sizeof(lpcnet->old_gain[0]));
+
     lpcnet->old_gain[0] = features[PITCH_GAIN_FEATURE];
     run_frame_network(lpcnet, condition, gru_a_condition, features, pitch);
     memcpy(lpc, lpcnet->old_lpc[FEATURES_DELAY-1], LPC_ORDER*sizeof(lpc[0]));
     memmove(lpcnet->old_lpc[1], lpcnet->old_lpc[0], (FEATURES_DELAY-1)*LPC_ORDER*sizeof(lpc[0]));
     lpc_from_cepstrum(lpcnet->old_lpc[0], features);
+
     if (lpcnet->frame_count <= FEATURES_DELAY)
     {
         RNN_CLEAR(output, N);
         return;
     }
+
     for (i=start;i<N;i++)
     {
         int j;

@@ -1,0 +1,131 @@
+#!/usr/bin/python3
+
+# Train a LPCNet model (note not a Wavenet model)
+import os
+
+import numpy as np
+import argparse
+
+from keras.optimizers import Adam
+# from .ulaw import ulaw2lin, lin2ulaw
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
+from .save_model_new import save_model
+# from .train_val_tb import TrainValTensorBoard
+from .lpcnet_model_new import new_lpcnet_model, Sparsify
+
+
+def load_data(pcm_file, feature_file,
+		pcm_chunk_size, feature_chunk_size,
+		nb_features, nb_used_features):
+
+	pcm_data = np.fromfile(pcm_file, dtype='uint8')
+	nb_frames0 = len(pcm_data) // (4 * pcm_chunk_size)
+	print("nb_frames0: {}".format(nb_frames0))
+
+	features = np.fromfile(feature_file, dtype='float32')
+	nb_frames1 = len(features) // (feature_chunk_size * nb_features)
+	print("nb_frames1: {}".format(nb_frames1))
+
+	if nb_frames1 < nb_frames0:
+		nb_frames = nb_frames1
+	else:
+		nb_frames = nb_frames0
+
+	print("nb_frames: {}".format(nb_frames))
+
+	# limit to discrete number of frames
+	pcm_data = pcm_data[:nb_frames * 4 * pcm_chunk_size]
+	print("shape of pcm_data: {}".format(pcm_data.shape))
+
+	signal = np.reshape(pcm_data[0::4], (nb_frames, pcm_chunk_size, 1))
+	predict = np.reshape(pcm_data[1::4], (nb_frames, pcm_chunk_size, 1))
+	in_excite = np.reshape(pcm_data[2::4], (nb_frames, pcm_chunk_size, 1))
+	out_excite = np.reshape(pcm_data[3::4], (nb_frames, pcm_chunk_size, 1))
+	del pcm_data
+
+	print("ulaw std = ", np.std(out_excite))
+
+	print("shape of features: {}".format(features.shape))
+	features_len_truncated = nb_frames * feature_chunk_size * nb_features
+	if len(features) < features_len_truncated:
+		print("length of features is less than the preferred size to be truncated.")
+
+	features = features[:nb_frames * feature_chunk_size * nb_features]
+	print("shape of features before reshape: {}".format(features.shape))
+
+	features = np.reshape(features, (nb_frames, feature_chunk_size, nb_features))
+	print("shape of features after reshape: {}".format(features.shape))
+	features = features[:, :, :nb_used_features]
+	features[:, :, 18:36] = 0
+
+	# it's wrong! we will get a 2D array in this way,
+	# however, a 3D array is required.
+	# raw_pitch = features[:, :, 36]
+
+	raw_pitch = features[:, :, 36:37]
+
+	max_raw_pitch = np.max(raw_pitch) + 0.5
+	min_raw_pitch = np.min(raw_pitch) - 0.5
+	print("max_raw_pitch: {}".format(max_raw_pitch))
+	print("min_raw_pitch: {}".format(min_raw_pitch))
+
+	periods = (raw_pitch - min_raw_pitch)*255.0/(max_raw_pitch - min_raw_pitch).astype('int16')
+	# periods = (.1 + 50 * features[:, :, 36:37] + 100).astype('int16')
+
+	"""
+	print("shape of periods: {}".format(periods.shape))
+	max_period = np.max(periods)
+	min_period = np.min(periods)
+	print("max of periods: {}".format(max_period))
+	print("min of periods: {}".format(min_period))
+	"""
+
+	signal_predict = np.concatenate([signal, predict], axis=-1)
+	print("shape of in_data: {}".format(signal_predict.shape))
+
+	return signal_predict, features, periods, in_excite, out_excite
+
+
+def main():
+	os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
+
+	# The GPU id to use, usually either "0" or "1";
+	os.environ["CUDA_VISIBLE_DEVICES"] = "0";
+
+	parser = argparse.ArgumentParser(description="train the lpcnet model.")
+
+	parser.add_argument(
+		"--feature_file",
+		help="the path of feature file.")
+
+	parser.add_argument(
+		"--pcm_file",
+		help="the path of pcm data file.")
+
+	args = parser.parse_args()
+
+	feature_file = args.feature_file
+	pcm_file = args.pcm_file  # 16 bit unsigned short PCM samples
+	frame_size = 160
+	nb_features = 55
+	nb_used_features = 38  #
+	feature_chunk_size = 15
+	pcm_chunk_size = frame_size * feature_chunk_size
+
+	# u for unquantised, load 16 bit PCM samples and convert to mu-law
+	config = tf.ConfigProto()
+
+	# use this option to reserve GPU memory, e.g. for running more than
+	# one thing at a time.  Best to disable for GPUs with small memory
+	config.gpu_options.per_process_gpu_memory_fraction = 0.9
+	set_session(tf.Session(config=config))
+
+	signal_predict, features, periods, in_excite, out_excite = \
+		load_data(pcm_file, feature_file, pcm_chunk_size, feature_chunk_size,
+				  nb_features, nb_used_features)
+
+
+if __name__ == '__main__':
+	main()
