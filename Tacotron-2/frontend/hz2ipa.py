@@ -319,12 +319,21 @@ def filter_punct_mark(raw_sentence):
 	return cleaned_sentence
 
 
+# for example, "de" ==> "de5"
+def fix_qinsheng(in_pinyin):
+	'''format pinyin to mtts's format'''
+	if not in_pinyin[-1].isdigit():
+		in_pinyin = in_pinyin + '5'
+
+	return in_pinyin
+
+
 ## only contains chinese characters, no punction
 def hz2py(sentence_cleaned):
 	pinyin_list = pinyin(sentence_cleaned, style=Style.TONE3)
 	# print("pinyin_list before transform: {}".format(pinyin_list))
 
-	pinyin_sequence = [item[0] for item in pinyin_list]
+	pinyin_sequence = [fix_qinsheng(item[0]) for item in pinyin_list]
 
 	"""
 	# ------------- fix the pinyin of duoyinzi ----------------------
