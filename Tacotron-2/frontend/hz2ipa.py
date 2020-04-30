@@ -309,14 +309,22 @@ def flatten_ipa_seq(ipa_list):
 	total_ipa_seq = '$'.join(ipa_str_list)
 	return total_ipa_seq
 
-def hz2py(sentence_cleaned):
-	pinyin_sequence = []
-	## only contains chinese characters, no punction
 
+def filter_punct_mark(raw_sentence):
+	hz_chars = []
+	for char in raw_sentence:
+		if is_hanzi(char):
+			hz_chars.append(char)
+	cleaned_sentence = "".join(hz_chars)
+	return cleaned_sentence
+
+
+## only contains chinese characters, no punction
+def hz2py(sentence_cleaned):
 	pinyin_list = pinyin(sentence_cleaned, style=Style.TONE3)
-	for item in pinyin_list:
-		pinyin_normalized = pinyin_format(item[0])
-		pinyin_sequence.append(pinyin_normalized)
+	# print("pinyin_list before transform: {}".format(pinyin_list))
+
+	pinyin_sequence = [item[0] for item in pinyin_list]
 
 	"""
 	# ------------- fix the pinyin of duoyinzi ----------------------
@@ -339,6 +347,7 @@ def hz2py(sentence_cleaned):
 
 
 # hanzi_line, py_line have been cleaned, containing no new line symbol.
+# py_line is a string, and contains no punctuation mark.
 def cal_ipa_seq(hanzi_line, py_line):
 	punctuations_info = extract_punct_from_hzline(hanzi_line)
 	ipa_line = py2ipa_xqb(py_line)
