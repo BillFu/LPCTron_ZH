@@ -76,9 +76,10 @@ def main():
 	synthesizer = load_model(args.checkpoint_dir)
 
 	# hz_line = "蓝蓝的天上白云飘，放羊娃坐在草地上发呆。"
-	hz_line = "羊儿在山坡上吃草，放羊娃在为娶媳妇送彩礼的事儿犯愁。"
+	# hz_line = "羊儿在山坡上吃草，放羊娃在为娶媳妇送彩礼的事儿犯愁。"
+	hz_line = "抱歉，我的账户只剩三元，而我的智商欠费却为一百五十二元。"
 
-	sentence_id = "1003"
+	sentence_id = "1004"
 	print("hz_line: {}".format(hz_line))
 	# print("py_line: {}".format(py_line))
 
