@@ -6,10 +6,16 @@ dataset/.DS_Store
 
 taco_pretrained/
 
+
 inference_model.pb
 
 c_tools/build/
 c_tools/cmake-build-release/
+
+Python-C/c_app/bin/
+Python-C/c_app/cmake-build-debug/
+Python-C/c_app/cmake-build-release/
+
 LPCNet/__pycache__/
 
 step*.wav
