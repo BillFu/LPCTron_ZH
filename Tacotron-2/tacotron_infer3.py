@@ -86,8 +86,8 @@ def main():
 	synthesizer = load_model(args.checkpoint_dir)
 
 	IPC_KEY = 42
-	SEMAPHORE_NAME = "/wuthering_heights"
-	SHARED_MEMORY_NAME = "/four_yorkshiremen"
+	SEMAPHORE_NAME = "/LPCTron_SEM1"
+	SHARED_MEMORY_NAME = "/LPCTron_SHM1"
 	SHARED_MEMORY_SIZE = 2000 * 20 * 4   # 2000 is max number of frames
 
 	ipc_memory = posix_ipc.SharedMemory(SHARED_MEMORY_NAME,
