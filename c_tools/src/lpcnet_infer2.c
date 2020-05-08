@@ -39,14 +39,14 @@ int main(int argc, char **argv) {
     }
 
     // get a handle to the shared memory
-    fd_shmem = shm_open(shmem_name, O_RDWR, params.permissions);
+    fd_shmem = shm_open(shmem_name, O_RDONLY, 0666);
     if (fd_shmem == -1) {
         printf("Failed to get a handle to the shared memory; errno is %d", errno);
         exit(1);
     }
 
     // mmap it.
-    pSharedMemory = mmap((void *)0, shmem_max_size,
+    pSharedMemory = mmap((void *)NULL, shmem_max_size,
             PROT_READ, MAP_SHARED, fd_shmem, 0);
     if (pSharedMemory == MAP_FAILED)
     {
@@ -76,6 +76,13 @@ int main(int argc, char **argv) {
                         say(MY_NAME, "Releasing the semaphore");
                         rc = release_semaphore(MY_NAME, the_semaphore, params.live_dangerously);
                         if (!rc) {
+
+
+    rc = shm_unlink(params.shared_memory_name);
+    if (rc) {
+        sprintf(s, "Unlinking the memory failed; errno is %d", errno);
+        say(MY_NAME, s);
+    }
 
     fout = fopen(argv[1], "wb");
     if (fout == NULL)
