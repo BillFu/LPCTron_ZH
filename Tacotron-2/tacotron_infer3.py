@@ -31,7 +31,7 @@ def load_model(model_path):
 
 
 def inference(sentence_id, normalized_hz_line, synthesizer,
-			ipc_semaphore, mmap_file):
+			mutex_semaphore, mmap_file):
 	cleaned_sentence = filter_punct_mark(normalized_hz_line)
 	py_seq = hz2py(cleaned_sentence)
 	py_line = " ".join(py_seq)  # convert list into string
@@ -49,12 +49,12 @@ def inference(sentence_id, normalized_hz_line, synthesizer,
 	print("npy_data's item bytes: {}".format(npy_data.itemsize))
 	"""
 
-	ipc_semaphore.acquire()
+	mutex_semaphore.acquire()
 	mmap_file.seek(0)
 	mmap_file.write(mels.data)
 	# mmap_file.close()
 	mmap_file.flush()  # if flush() doesn't work, use close()
-	ipc_semaphore.release()
+	mutex_semaphore.release()
 
 
 def main():
@@ -86,20 +86,21 @@ def main():
 	synthesizer = load_model(args.checkpoint_dir)
 
 	IPC_KEY = 42
-	SEMAPHORE_NAME = "/LPCTron_SEM1"
-	SHARED_MEMORY_NAME = "/LPCTron_SHM1"
-	SHARED_MEMORY_SIZE = 2000 * 20 * 4   # 2000 is max number of frames
+	MUTEX_SEMAPHORE_NAME = "/Mutex_SEM1"
+	FEATURE_SHMEM_NAME = "/Feature_SHM1"
+	FEATURE_SHMEM_SIZE = 2000 * 20 * 4   # 2000 is max number of frames
 
-	ipc_memory = posix_ipc.SharedMemory(SHARED_MEMORY_NAME,
-		posix_ipc.O_CREX, size=SHARED_MEMORY_SIZE)
-	ipc_semaphore = posix_ipc.Semaphore(SEMAPHORE_NAME, posix_ipc.O_CREX)
+	mutex_semaphore = posix_ipc.Semaphore(MUTEX_SEMAPHORE_NAME,
+		posix_ipc.O_CREX, initial_value=1)
+	feature_shmem = posix_ipc.SharedMemory(FEATURE_SHMEM_NAME,
+		posix_ipc.O_CREX, size=FEATURE_SHMEM_SIZE)
 
 	# MMap the shared memory
-	mmap_file = mmap.mmap(ipc_memory.fd, ipc_memory.size)
+	mmap_file = mmap.mmap(feature_shmem.fd, feature_shmem.size)
 
 	# Once I've mmapped the file descriptor, I can close it without
 	# interfering with the mmap.
-	ipc_memory.close_fd()
+	feature_shmem.close_fd()
 
 	# hz_line = "蓝蓝的天上白云飘，放羊娃坐在草地上发呆。"
 	# hz_line = "羊儿在山坡上吃草，放羊娃在为娶媳妇送彩礼的事儿犯愁。"
@@ -109,12 +110,12 @@ def main():
 	print("hz_line: {}".format(hz_line))
 	# print("py_line: {}".format(py_line))
 
-	inference(sentence_id, hz_line, synthesizer, ipc_semaphore, mmap_file)
+	inference(sentence_id, hz_line, synthesizer, mutex_semaphore, mmap_file)
 
 	mmap_file.close()
 
-	ipc_memory.unlink()
-	ipc_semaphore.unlink()
+	feature_shmem.unlink()
+	mutex_semaphore.unlink()
 
 
 

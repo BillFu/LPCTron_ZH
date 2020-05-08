@@ -26,14 +26,14 @@
 #define SHARED_MEM_NAME "/posix-shared-mem-example"
 
 struct shared_memory {
-    char buf [MAX_BUFFERS] [256];
+    char buf[MAX_BUFFERS][256];
     int buffer_index;
     int buffer_print_index;
 };
 
-void error (char *msg);
+void error(char *msg);
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
     struct shared_memory *shared_mem_ptr;
     sem_t *mutex_sem, *buffer_count_sem, *spool_signal_sem;
@@ -60,24 +60,25 @@ int main (int argc, char **argv)
     if ((spool_signal_sem = sem_open (SEM_SPOOL_SIGNAL_NAME, 0, 0, 0)) == SEM_FAILED)
         error ("sem_open");
 
-    char buf [200], *cp;
+    char buf[200], *cp;
 
     printf ("Please type a message: ");
 
-    while (fgets (buf, 198, stdin)) {
+    while (fgets (buf, 198, stdin)) 
+    {
         // remove newline from string
         int length = strlen (buf);
         if (buf [length - 1] == '\n')
            buf [length - 1] = '\0';
 
         // get a buffer: P (buffer_count_sem);
-        if (sem_wait (buffer_count_sem) == -1)
+        if (sem_wait(buffer_count_sem) == -1)
             error ("sem_wait: buffer_count_sem");
     
         /* There might be multiple producers. We must ensure that 
             only one producer uses buffer_index at a time.  */
         // P (mutex_sem);
-        if (sem_wait (mutex_sem) == -1)
+        if (sem_wait(mutex_sem) == -1)
             error ("sem_wait: mutex_sem");
 
 	    // Critical section
@@ -86,7 +87,7 @@ int main (int argc, char **argv)
             int len = strlen (cp);
             if (*(cp + len -1) == '\n')
                 *(cp + len -1) = '\0';
-            sprintf (shared_mem_ptr -> buf [shared_mem_ptr -> buffer_index], "%d: %s %s\n", getpid (), 
+            sprintf (shared_mem_ptr->buf[shared_mem_ptr->buffer_index], "%d: %s %s\n", getpid (), 
                      cp, buf);
             (shared_mem_ptr -> buffer_index)++;
             if (shared_mem_ptr -> buffer_index == MAX_BUFFERS)
@@ -97,7 +98,7 @@ int main (int argc, char **argv)
             error ("sem_post: mutex_sem");
     
 	// Tell spooler that there is a string to print: V (spool_signal_sem);
-        if (sem_post (spool_signal_sem) == -1)
+        if (sem_post(spool_signal_sem) == -1)
             error ("sem_post: (spool_signal_sem");
 
         printf ("Please type a message: ");

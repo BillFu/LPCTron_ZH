@@ -49,17 +49,19 @@ int main (int argc, char **argv)
         error ("sem_open");
     
     // Get shared memory 
-    if ((fd_shm = shm_open (SHARED_MEM_NAME, O_RDWR | O_CREAT, 0660)) == -1)
+    if ((fd_shm = shm_open(SHARED_MEM_NAME, O_RDWR | O_CREAT, 0660)) == -1)
         error ("shm_open");
 
-    if (ftruncate (fd_shm, sizeof (struct shared_memory)) == -1)
+    if (ftruncate (fd_shm, sizeof(struct shared_memory)) == -1)
        error ("ftruncate");
     
-    if ((shared_mem_ptr = mmap (NULL, sizeof (struct shared_memory), PROT_READ | PROT_WRITE, MAP_SHARED,
+    if ((shared_mem_ptr = mmap(NULL, sizeof (struct shared_memory), PROT_READ | PROT_WRITE, MAP_SHARED,
             fd_shm, 0)) == MAP_FAILED)
        error ("mmap");
+
     // Initialize the shared memory
-    shared_mem_ptr -> buffer_index = shared_mem_ptr -> buffer_print_index = 0;
+    shared_mem_ptr->buffer_index = 0;
+    shared_mem_ptr->buffer_print_index = 0;
 
     // counting semaphore, indicating the number of available buffers. Initial value = MAX_BUFFERS
     if ((buffer_count_sem = sem_open (SEM_BUFFER_COUNT_NAME, O_CREAT, 0660, MAX_BUFFERS)) == SEM_FAILED)
@@ -71,26 +73,27 @@ int main (int argc, char **argv)
 
     // Initialization complete; now we can set mutex semaphore as 1 to 
     // indicate shared memory segment is available
-    if (sem_post (mutex_sem) == -1)
+    if (sem_post(mutex_sem) == -1)
         error ("sem_post: mutex_sem");
     
-    while (1) {  // forever
+    while (1) 
+    {  // forever
         // Is there a string to print? P (spool_signal_sem);
-        if (sem_wait (spool_signal_sem) == -1)
+        if (sem_wait(spool_signal_sem) == -1)
             error ("sem_wait: spool_signal_sem");
     
-        strcpy (mybuf, shared_mem_ptr -> buf [shared_mem_ptr -> buffer_print_index]);
+        strcpy (mybuf, shared_mem_ptr->buf[shared_mem_ptr->buffer_print_index]);
 
         /* Since there is only one process (the logger) using the 
            buffer_print_index, mutex semaphore is not necessary */
-        (shared_mem_ptr -> buffer_print_index)++;
-        if (shared_mem_ptr -> buffer_print_index == MAX_BUFFERS)
-           shared_mem_ptr -> buffer_print_index = 0;
+        (shared_mem_ptr->buffer_print_index)++;
+        if (shared_mem_ptr->buffer_print_index == MAX_BUFFERS)
+           shared_mem_ptr->buffer_print_index = 0;
 
         /* Contents of one buffer has been printed.
            One more buffer is available for use by producers.
            Release buffer: V (buffer_count_sem);  */
-        if (sem_post (buffer_count_sem) == -1)
+        if (sem_post(buffer_count_sem) == -1)
             error ("sem_post: buffer_count_sem");
         
         // write the string to file
