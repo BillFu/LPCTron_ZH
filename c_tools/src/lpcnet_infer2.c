@@ -20,6 +20,7 @@ int main(int argc, char **argv)
     sem_t* mutex_semaphore = NULL;
     void *pFeatureMemory = NULL;
     size_t feature_shmem_max_size = 2000 * 20 * 4;  // measured in bytes
+    int rc;
 
     if (argc != 2)
     {
@@ -62,26 +63,24 @@ int main(int argc, char **argv)
     }
 
     // Wait for Mrs. Premise to free up the semaphore.
-    rc = acquire_semaphore(MY_NAME, the_semaphore, params.live_dangerously);
-    rc = sem_wait(pSemaphore);
+    rc = sem_wait(mutex_semaphore);
     if (rc) {
-        sprintf(s, "Acquiring the semaphore failed; errno is %d\n", errno);
-        say(pName, s);
+        fprintf(stderr, "Acquiring the semaphore failed; errno is %d\n", errno);
     }
 
-    while (1)
+    float* pFeatureArray = (float*)pFeatureMemory;
+    for(int i=0; i<500; i++)  // iterate over 500 frames
     {
-        float features[NB_FEATURES];
-        short pcm[FRAME_SIZE];
+        float in_features[NB_FEATURES];  // NB_FEATURES is 38, the data will enter lpcnet
+        short pcm[FRAME_SIZE]; // output pcm data produced by lpcnet.
 
-        float in_features[NB_BANDS+2];
-        fread(in_features, sizeof(features[0]), NB_BANDS+2, fin);
-        if (feof(fin)) break;
-        RNN_COPY(features, in_features, NB_BANDS);
-        RNN_CLEAR(&features[18], 18);
-        RNN_COPY(features+36, in_features+NB_BANDS, 2);
+        float* raw_features = pFeatureArray + i*(NB_BANDS+2);  // NB_BANDS+2 == 20
 
-        lpcnet_synthesize(net, pcm, features, FRAME_SIZE);
+        RNN_COPY(in_features, raw_features, NB_BANDS);
+        RNN_CLEAR(&in_features[18], 18);
+        RNN_COPY(in_features+36, raw_features+NB_BANDS, 2);
+
+        lpcnet_synthesize(net, pcm, in_features, FRAME_SIZE);
         fwrite(pcm, sizeof(pcm[0]), FRAME_SIZE, fout);
     }
 

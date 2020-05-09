@@ -67,9 +67,11 @@ def main():
 		default='synthesize_output/',
 		help='folder to contain synthesized mel spectrograms')
 
+	"""
 	parser.add_argument('--input_text_file',
 		default='',
 		help='Text file contains sentences to be synthesized.')
+	"""
 
 	args = parser.parse_args()
 
@@ -114,9 +116,10 @@ def main():
 
 	mmap_file.close()
 
+	in_cmd = input("enter 'exit' to quit this program...")
+
 	feature_shmem.unlink()
 	mutex_semaphore.unlink()
-
 
 
 if __name__ == '__main__':
