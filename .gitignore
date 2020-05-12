@@ -9,6 +9,7 @@ taco_pretrained/
 
 inference_model.pb
 
+c_tools/thirdparty/
 c_tools/build/
 c_tools/cmake-build-release/
 
