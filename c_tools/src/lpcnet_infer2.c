@@ -9,6 +9,8 @@
 #include "lpcnet.h"
 #include "freq.h"
 
+#define MAX_CMN_LEN 400
+
 
 int main(int argc, char **argv)
 {
@@ -21,10 +23,18 @@ int main(int argc, char **argv)
     void *pFeatureMemory = NULL;
     size_t feature_shmem_max_size = 2000 * 20 * 4;  // measured in bytes
     int rc;
+    char ffmpeg_cmd[MAX_CMN_LEN] = "";
 
-    if (argc != 2)
+    if (argc != 4)
     {
-        fprintf(stderr, "usage: lpcnet_infer2 <output.pcm>\n");
+        fprintf(stderr, "usage: lpcnet_infer2 <output.pcm> <16k or 8k> <output.wav> \n");
+        return 0;
+    }
+
+    if(!(strcmp(argv[2], "16k") == 0 ||
+        (strcmp(argv[2], "8k") == 0)))
+    {
+        fprintf(stderr, "usage: lpcnet_infer2 <output.pcm> <16k or 8k> <output.wav> \n");
         return 0;
     }
 
@@ -102,5 +112,23 @@ int main(int argc, char **argv)
 
     fclose(fout);
     lpcnet_destroy(net);
+
+    // the final step is convert pcm data to wav file,
+    // and re-sampling from 16k to 8K if needed by drive ffmpeg.
+    // ffmpeg -f s16le -ar 16k -ac 1 -i synth_pcm1.f16 -ar 16k synth_16k_1.wav
+    // ffmpeg -f s16le -ar 16k -ac 1 -i synth_pcm1.f16 -ar 8k  synth_8k_1.wav
+
+    // argv[1] is the name of pcm file output.
+    // argv[2] is "16k" or "8k"
+    // argv[3] is the name of wav file output.
+    if(strcmp(argv[2], "16k") == 0)
+        sprintf(ffmpeg_cmd, "ffmpeg -f s16le -ar 16k -ac 1 -i %s -ar 16k %s",
+            argv[1],  argv[3]);
+    else  // 8k for the output wav file
+        sprintf(ffmpeg_cmd, "ffmpeg -f s16le -ar 16k -ac 1 -i %s -ar 8k %s",
+                argv[1],  argv[3]);
+
+    system(ffmpeg_cmd);
+
     return 0;
 }
