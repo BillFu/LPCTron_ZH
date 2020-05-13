@@ -15,7 +15,7 @@ def conv1d(inputs, kernel_size, channels, activation, is_training, drop_rate, sc
                                 name='dropout_{}'.format(scope))
 
 
-class ZoneoutLSTMCell(tf.nn.rnn_cell.RNNCell):
+class ZoneoutLSTMCell(tf.compat.v1.nn.rnn_cell.RNNCell):
     '''Wrapper for tf LSTM to create Zoneout LSTM Cell
 
     inspired by:
