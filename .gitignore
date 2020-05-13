@@ -6,6 +6,7 @@ dataset/.DS_Store
 
 taco_pretrained/
 
+tacotron_model/tacotron.pb
 
 inference_model.pb
 
