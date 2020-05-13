@@ -20,21 +20,30 @@ class PB_Synthesizer:
     def load(self, model_file, hparams, model_name='Tacotron'):
         log('loading model: %s' % model_name)
         self.graph = tf.Graph()
-        self.sess = tf.compat.v1.InteractiveSession(graph=self.graph)
+        self.session = tf.compat.v1.InteractiveSession(graph=self.graph)
 
         with tf.io.gfile.GFile(model_file, 'rb') as f:
             graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(f.read())
 
         # Then, we import the graph_def into a new Graph and returns it
-        with tf.Graph().as_default() as graph:
+        #with tf.Graph().as_default() as graph:
             # The name var will prefix every op/nodes in your graph
             # Since we load everything in a new graph, this is not needed
-            tf.import_graph_def(graph_def)
+        tf.import_graph_def(graph_def)
+        """
+        all_tensors = [tensor for op in self.graph.get_operations() for tensor in op.values()]
+        for tensor in all_tensors:
+            print("tensor name: {}".format(tensor.name))
+        
+        for op in self.graph.get_operations():
+            if op.type == "Placeholder":
+                print("Placeholder operation name: {}".format(op.name))
+        """
 
-        self.mel_outputs = self.graph.get_tensor_by_name("model/inference/add")
-        self.inputs = self.graph.get_tensor_by_name("inputs")
-        self.input_lengths = self.graph.get_tensor_by_name("input_lengths")
+        self.mel_outputs = self.graph.get_tensor_by_name("import/model/inference/add:0")
+        self.inputs = self.graph.get_tensor_by_name("import/inputs:0")
+        self.input_lengths = self.graph.get_tensor_by_name("import/input_lengths:0")
 
         print('tacotron pb model loading complete!')
         self._hparams = hparams
@@ -48,7 +57,7 @@ class PB_Synthesizer:
             self.input_lengths: np.asarray([len(seq)], dtype=np.int32),
         }
 
-        mels = self.session.run([self.mel_outputs], feed_dict=feed_dict)
+        mels = self.session.run([self.mel_outputs], feed_dict=feed_dict)[0]
         mels = mels.reshape(-1, hparams.num_mels)  # Thanks to @imdatsolak for pointing this out
         return mels
 

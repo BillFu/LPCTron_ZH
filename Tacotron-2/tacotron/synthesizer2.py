@@ -28,6 +28,8 @@ class Synthesizer:
             else:        
                 self.model.initialize(inputs, input_lengths)
             self.mel_outputs = self.model.mel_outputs
+            print("tensor name of inputs: {}".format(inputs.name))
+            # print("tensor name of mel_outputs: {}".format(self.mel_outputs.name))
             print("tensor name of mel_outputs: {}".format(self.mel_outputs.name))
             self.alignment = self.model.alignments[0]
 
