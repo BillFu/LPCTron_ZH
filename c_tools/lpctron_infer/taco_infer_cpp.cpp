@@ -8,25 +8,38 @@
 #include <iostream>
 #include <vector>
 
+using namespace std;
+
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        std::cerr << std::endl << "Usage: ./project path_to_graph.pb" << std::endl;
+        std::cerr << std::endl <<
+            "Usage: ./taco_infer_cpp <ipa_id_seq file> <tacotron model file>" << std::endl;
         return 1;
     }
 
-    std::string graph_path = argv[1];
+    std::string ipa_seq_file_name = argv[1];
+    std::string taco_model_file_name = argv[2];
+
+    cout << "IPA ID Seq File: " << ipa_seq_file_name << endl;
+    cout << "Tacotron Model File: " << taco_model_file_name << endl;
 
     // TFUtils init
     TFUtils TFU;
-    TFUtils::STATUS status = TFU.LoadModel(graph_path);
-
-    if (status != TFUtils::SUCCESS) {
+    TFUtils::STATUS status = TFU.LoadModel(taco_model_file_name);
+    if (status != TFUtils::SUCCESS)
+    {
         std::cerr << "Can't load graph" << std::endl;
         return 1;
     }
+    else
+    {
+        cout << "Tacotron Model has been loaded Successfully!" << endl;
+    }
 
+    // read text file, pls see http://www.fredosaurus.com/notes-cpp/io/readtextfile.html
+    /*
     // Input Tensor Create
     const std::vector<std::int64_t> input_a_dims = {1, 1};
     const std::vector<float> input_a_vals = {2.0};
@@ -63,6 +76,7 @@ int main(int argc, char* argv[])
 
     TFUtils::DeleteTensors(input_tensors);
     TFUtils::DeleteTensors(output_tensors);
+    */
 
     return 0;
 }
