@@ -45,11 +45,14 @@ int main(int argc, char* argv[])
 
     TFUtils::PrinStatus(status);
 
-    if (status == TFUtils::SUCCESS) {
+    if (status == TFUtils::SUCCESS)
+    {
         const std::vector<std::vector<float>> data = TFUtils::GetTensorsData<float>(output_tensors);
         const std::vector<float> result = data[0];
         std::cout << "Output value: " << result[0] << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "Error run session";
         return 2;
     }

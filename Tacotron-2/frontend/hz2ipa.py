@@ -368,7 +368,7 @@ def cal_ipa_seq(hanzi_line, py_line):
 		punctuations_info.append(('。', len(ipa_list) - 1))
 
 	# we should filter the punctuations at first,
-	print(hanzi_line)
+	# print(hanzi_line)
 	# print(punctuations_info)
 	remained_punctuations_info = filter_punctuation(punctuations_info)
 
