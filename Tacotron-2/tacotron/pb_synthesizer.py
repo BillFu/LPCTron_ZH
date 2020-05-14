@@ -26,20 +26,7 @@ class PB_Synthesizer:
             graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(f.read())
 
-        # Then, we import the graph_def into a new Graph and returns it
-        #with tf.Graph().as_default() as graph:
-            # The name var will prefix every op/nodes in your graph
-            # Since we load everything in a new graph, this is not needed
         tf.import_graph_def(graph_def)
-        """
-        all_tensors = [tensor for op in self.graph.get_operations() for tensor in op.values()]
-        for tensor in all_tensors:
-            print("tensor name: {}".format(tensor.name))
-        
-        for op in self.graph.get_operations():
-            if op.type == "Placeholder":
-                print("Placeholder operation name: {}".format(op.name))
-        """
 
         self.mel_outputs = self.graph.get_tensor_by_name("import/model/inference/add:0")
         self.inputs = self.graph.get_tensor_by_name("import/inputs:0")

@@ -6,4 +6,4 @@ mkdir -p tacotron_output
 
 python3.6 -m Tacotron-2.tacotron_infer5 \
 --model_file=tacotron_model/tacotron.pb \
---output_dir=tacotron_output
+--output_dir=lpcnet_test
