@@ -5,16 +5,15 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <sstream>
+#include<sstream>
 #include <string>
-#include <tensorflow/c/c_api.h>
 
+#include "TFUtils.hpp"
 #include "tf_diagnosis.h"
 #include "scope_guard.hpp"
-#include "tf_utils.hpp"
+#include <tensorflow/c/c_api.h>
 
 using namespace std;
-//using namespace tf_utils;
 
 
 // if ok, return true; otherwise return false.
@@ -51,17 +50,17 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // std::string ipa_seq_file_name = argv[1];
-    const char* ipa_seq_file_name = argv[1];
-    // std::string taco_model_file_name = argv[2];
-    const char* taco_model_file_name = argv[2];
+    std::string ipa_seq_file_name = argv[1];
+    std::string taco_model_file_name = argv[2];
 
     cout << "IPA ID Seq File: " << ipa_seq_file_name << endl;
     cout << "Tacotron Model File: " << taco_model_file_name << endl;
 
-    auto taco_graph = tf_utils::LoadGraph(taco_model_file_name);
-    SCOPE_EXIT{ tf_utils::DeleteGraph(taco_graph); }; // Auto-delete on scope exit.
-    if (taco_graph == nullptr) {
+    // TFUtils init
+    TFUtils TFU;
+    TFUtils::STATUS status = TFU.LoadModel(taco_model_file_name);
+    if (status != TFUtils::SUCCESS)
+    {
         std::cerr << "Can't load tacotron graph from file: " << taco_model_file_name << endl;
         return 1;
     }
@@ -69,6 +68,8 @@ int main(int argc, char* argv[])
     {
         cout << "Tacotron Model has been loaded Successfully!" << endl;
     }
+
+    TF_Graph* graph = TFU.getGraph();
 
     vector<int> ipa_id_list;
     bool is_OK = load_ipa_id_seq(ipa_seq_file_name, ipa_id_list);
@@ -82,22 +83,34 @@ int main(int argc, char* argv[])
         std::cerr << "ipa id seq loaded successfully." << endl;
     }
 
+    // Iterate through the operations of a graph.  To use:
+    /*
+    size_t pos = 0;
+    TF_Operation* oper;
+    while ((oper = TF_GraphNextOperation(TFU.getGraph(), &pos)) != nullptr)
+    {
+        //DoSomethingWithOperation(oper);
+        const char* op_name = TF_OperationName(oper);
+        cout << op_name << endl;
+    }
+    */
+
     auto status0 = TF_NewStatus();
     SCOPE_EXIT{ TF_DeleteStatus(status0); }; // Auto-delete on scope exit.
 
-    PrintOpInfo(taco_graph, "inputs", status0);
+    PrintOpInfo(graph, "inputs", status0);
     std::cout << std::endl;
 
-    PrintOpInfo(taco_graph, "input_lengths", status0);
+    PrintOpInfo(graph, "input_lengths", status0);
     std::cout << std::endl;
 
-    PrintOpInfo(taco_graph, "model/inference/add", status0);
+    PrintOpInfo(graph, "model/inference/add", status0);
     std::cout << std::endl;
 
-    TF_Operation* inputs_op = TF_GraphOperationByName(taco_graph, "inputs");
-    TF_Operation* input_lengths_op = TF_GraphOperationByName(taco_graph, "input_lengths");
+    TF_Output inputs_op = TFU.GetOperationByName("inputs", 0);
+    TF_Output input_lengths_op = TFU.GetOperationByName("input_lengths", 0);
 
-    if(inputs_op == nullptr || input_lengths_op == nullptr)
+    if((inputs_op.oper == nullptr) || (input_lengths_op.oper == nullptr))
     {
         cout << "inputs OP or input_lengths OP NOT found!" << endl;
         return 1;
@@ -107,11 +120,11 @@ int main(int argc, char* argv[])
     const int id_num = ipa_id_list.size();
     const std::vector<std::int64_t> inputs_dims = {1, id_num};
     const std::vector<int> inputs_vals = ipa_id_list;
-    TF_Tensor* inputs_tensor = tf_utils::CreateTensor(TF_INT32, inputs_dims, inputs_vals);
+    TF_Tensor* inputs_tensor = TFUtils::CreateTensor(TF_INT32, inputs_dims, inputs_vals);
 
     const std::vector<std::int64_t> input_lengths_dims = {1};
     const std::vector<int> input_lengths_vals = {id_num};
-    TF_Tensor* input_lengths_tensor = tf_utils::CreateTensor(
+    TF_Tensor* input_lengths_tensor = TFUtils::CreateTensor(
             TF_INT32, input_lengths_dims, input_lengths_vals);
     if((inputs_tensor == nullptr) || (input_lengths_tensor == nullptr))
     {
@@ -119,48 +132,26 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    const std::vector<TF_Output> all_input_ops =
-            { {inputs_op, 0},  // a TF_Output object in the inner brace.
-              {input_lengths_op, 0} };
+    const std::vector<TF_Output> all_input_ops = {inputs_op, input_lengths_op};
     const std::vector<TF_Tensor*> all_input_tensors = {inputs_tensor, input_lengths_tensor};
-    SCOPE_EXIT{ tf_utils::DeleteTensors(all_input_tensors); }; // Auto-delete on scope exit.
 
     // Output Tensor Create
-    TF_Operation* out_op = TF_GraphOperationByName(taco_graph, "model/inference/add");
-    if(out_op == nullptr)
+    TF_Output out_op = TFU.GetOperationByName("model/inference/add", 0);
+    if(out_op.oper == nullptr)
     {
-        cout << "mel_outputs OP NOT found!" << endl;
+        cout << "mel_outputs op NOT found!" << endl;
         return 1;
     }
 
-    const std::vector<TF_Output> output_ops = {{out_op, 0}};
+    const std::vector<TF_Output> output_ops = {out_op};
     std::vector<TF_Tensor*> output_tensors = {nullptr};
-    SCOPE_EXIT{ tf_utils::DeleteTensors(output_tensors); }; // Auto-delete on scope exit.
 
-    auto session = tf_utils::CreateSession(taco_graph);
-    SCOPE_EXIT{ tf_utils::DeleteSession(session); }; // Auto-delete on scope exit.
-    if (session == nullptr) {
-        std::cout << "Can't create tf session" << std::endl;
-        return 2;
-    }
+    status = TFU.RunSession(all_input_ops, all_input_tensors,
+                            output_ops, output_tensors);
 
-    auto code = tf_utils::RunSession(session,
-                                     all_input_ops, all_input_tensors,
-                                     output_ops, output_tensors);
+    TFUtils::PrinStatus(status);
 
-    if (code == TF_OK)
-    {
-        auto mels_out = tf_utils::GetTensorData<std::vector<float>>(output_tensors[0]);
-        int frame_num = mels_out.size();
-        cout << "the number of the predicted frames: " << frame_num << endl;
-    }
-    else
-    {
-        std::cout << "Error run session TF_CODE: " << code;
-        return code;
-    }
-
-    /*
+    if (status == TFUtils::SUCCESS)
     {
         cout << "run session successfully done!"<< endl;
         TF_Tensor* mels_out_tensor = output_tensors[0];
@@ -168,9 +159,15 @@ int main(int argc, char* argv[])
                 TFUtils::GetTensorsData<std::vector<float>>(mels_out_tensor);
         int frame_num = mels_data.size();
         cout << "the number of the predicted frames: " << frame_num << endl;
+    }
+    else
+    {
+        cout << "Error run session" << endl;
+        return 1;
+    }
 
-    */
-
+    TFUtils::DeleteTensors(all_input_tensors);
+    TFUtils::DeleteTensors(output_tensors);
 
     return 0;
 }
