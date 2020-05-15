@@ -26,6 +26,11 @@ public:
     STATUS LoadModel(std::string model_file);
     ~TFUtils();
 
+    TF_Graph* getGraph()
+    {
+        return graph_def;
+    }
+
     TF_Output GetOperationByName(std::string name, int idx);
 
     STATUS RunSession(const std::vector<TF_Output>& inputs, const std::vector<TF_Tensor*>& input_tensors,

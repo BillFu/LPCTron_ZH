@@ -51,7 +51,7 @@ def main():
 	out_file_name = os.path.join(args.output_dir, out_file_name)
 
 	ipa_str_id_seq = [str(an_id) for an_id in ipa_id_seq]
-	out_str = ",".join(ipa_str_id_seq)
+	out_str = " ".join(ipa_str_id_seq)
 	with open(out_file_name, 'w') as f:
 		f.write(out_str)
 

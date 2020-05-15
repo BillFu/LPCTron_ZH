@@ -12,7 +12,7 @@ add_executable(lpcnet_infer3 ${LPCNET_INFER3_FILES})
 
 # add_executable(mini_model ${MINI_MODEL_FILES})
 
-add_executable(taco_infer_cpp taco_infer_cpp.cpp TFUtils.cpp)
+add_executable(taco_infer_cpp taco_infer_cpp.cpp TFUtils.cpp tf_utils.cpp extra_tf_utils.cpp)
 
 
 # add_executable(test_json test_json.cpp)
