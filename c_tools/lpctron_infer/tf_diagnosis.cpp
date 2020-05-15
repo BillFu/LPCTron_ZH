@@ -4,12 +4,14 @@
 
 #include <iostream>
 
-#include "extra_tf_utils.h"
+#include "tf_diagnosis.h"
 #include "tf_utils.hpp"
 
 
 void PrintInputs(TF_Graph*, TF_Operation* op) {
     auto num_inputs = TF_OperationNumInputs(op);
+
+    std::cout << "input tensors:" << std::endl;
 
     for (auto i = 0; i < num_inputs; ++i) {
         auto input = TF_Input{op, i};
@@ -18,7 +20,10 @@ void PrintInputs(TF_Graph*, TF_Operation* op) {
     }
 }
 
-void PrintOutputs(TF_Graph* graph, TF_Operation* op, TF_Status* status) {
+void PrintOutputs(TF_Graph* graph, TF_Operation* op, TF_Status* status)
+{
+    std::cout << "output tensors:" << std::endl;
+
     auto num_outputs = TF_OperationNumOutputs(op);
 
     for (int i = 0; i < num_outputs; ++i) {
@@ -31,7 +36,7 @@ void PrintOutputs(TF_Graph* graph, TF_Operation* op, TF_Status* status) {
             continue;
         }
 
-        std::cout << " dims: " << num_dims;
+        std::cout << " dims: " << num_dims << std::endl;
 
         if (num_dims <= 0) {
             std::cout << " []" << std::endl;;
@@ -59,8 +64,8 @@ void PrintOutputs(TF_Graph* graph, TF_Operation* op, TF_Status* status) {
     }
 }
 
-void PrintTensorInfo(TF_Graph* graph, const char* layer_name, TF_Status* status) {
-    std::cout << "Tensor: " << layer_name;
+void PrintOpInfo(TF_Graph* graph, const char* layer_name, TF_Status* status) {
+    std::cout << "======Operation: " << layer_name << "======" << std::endl;
     auto op = TF_GraphOperationByName(graph, layer_name);
 
     if (op == nullptr) {
@@ -73,6 +78,8 @@ void PrintTensorInfo(TF_Graph* graph, const char* layer_name, TF_Status* status)
     std::cout << " inputs: " << num_inputs << " outputs: " << num_outputs << std::endl;
 
     PrintInputs(graph, op);
-
     PrintOutputs(graph, op, status);
+
+    std::cout << "===============================" << std::endl;
+
 }

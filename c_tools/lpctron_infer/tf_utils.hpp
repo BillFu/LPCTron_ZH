@@ -22,14 +22,6 @@
 
 #pragma once
 
-#if defined(_MSC_VER)
-#  if !defined(COMPILER_MSVC)
-#    define COMPILER_MSVC // Set MSVC visibility of exported symbols in the shared library.
-#  endif
-#  pragma warning(push)
-#  pragma warning(disable : 4190)
-#endif
-
 #include <tensorflow/c/c_api.h> // TensorFlow C API header.
 #include <cstddef>
 #include <cstdint>

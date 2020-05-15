@@ -9,6 +9,8 @@
 #include <string>
 
 #include "TFUtils.hpp"
+#include "tf_diagnosis.h"
+#include "scope_guard.hpp"
 
 using namespace std;
 
@@ -66,6 +68,8 @@ int main(int argc, char* argv[])
         cout << "Tacotron Model has been loaded Successfully!" << endl;
     }
 
+    TF_Graph* graph = TFU.getGraph();
+
     vector<int> ipa_id_list;
     bool is_OK = load_ipa_id_seq(ipa_seq_file_name, ipa_id_list);
     if(!is_OK)
@@ -90,6 +94,18 @@ int main(int argc, char* argv[])
     }
     */
 
+    auto status0 = TF_NewStatus();
+    SCOPE_EXIT{ TF_DeleteStatus(status0); }; // Auto-delete on scope exit.
+
+    PrintOpInfo(graph, "inputs", status0);
+    std::cout << std::endl;
+
+    PrintOpInfo(graph, "input_lengths", status0);
+    std::cout << std::endl;
+
+    PrintOpInfo(graph, "model/inference/add", status0);
+    std::cout << std::endl;
+
     TF_Output inputs_op = TFU.GetOperationByName("inputs", 0);
     TF_Output input_lengths_op = TFU.GetOperationByName("input_lengths", 0);
 
@@ -105,7 +121,7 @@ int main(int argc, char* argv[])
     const std::vector<int> inputs_vals = ipa_id_list;
     TF_Tensor* inputs_tensor = TFUtils::CreateTensor(TF_INT32, inputs_dims, inputs_vals);
 
-    const std::vector<std::int64_t> input_lengths_dims = {1, 1};
+    const std::vector<std::int64_t> input_lengths_dims = {1};
     const std::vector<int> input_lengths_vals = {id_num};
     TF_Tensor* input_lengths_tensor = TFUtils::CreateTensor(
             TF_INT32, input_lengths_dims, input_lengths_vals);
@@ -141,7 +157,8 @@ int main(int argc, char* argv[])
         const std::vector<float> result = data[0];
         std::cout << "Output value: " << result[0] << std::endl;
         */
-        cout << "run session successfully done!";
+
+        cout << "run session successfully done!"<< endl;
     }
     else
     {
