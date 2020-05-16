@@ -13,5 +13,7 @@ void PrintOutputs(TF_Graph* graph, TF_Operation* op, TF_Status* status);
 
 void PrintOpInfo(TF_Graph* graph, const char* layer_name, TF_Status* status);
 
+void PrintOps(TF_Graph* graph, TF_Status* status);
+
 
 #endif //C_TOOLS_TF_DIAGNOSIS_H

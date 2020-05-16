@@ -70,6 +70,13 @@ int main(int argc, char* argv[])
         cout << "Tacotron Model has been loaded Successfully!" << endl;
     }
 
+    /*
+    auto status = TF_NewStatus();
+    SCOPE_EXIT{ TF_DeleteStatus(status); }; // Auto-delete on scope exit.
+
+    PrintOps(taco_graph, status);
+    */
+
     vector<int> ipa_id_list;
     bool is_OK = load_ipa_id_seq(ipa_seq_file_name, ipa_id_list);
     if(!is_OK)
@@ -105,6 +112,7 @@ int main(int argc, char* argv[])
 
     // Input Tensor Create
     const int id_num = ipa_id_list.size();
+    cout << "seq length: " << id_num << endl;
     const std::vector<std::int64_t> inputs_dims = {1, id_num};
     const std::vector<int> inputs_vals = ipa_id_list;
     TF_Tensor* inputs_tensor = tf_utils::CreateTensor(TF_INT32, inputs_dims, inputs_vals);
