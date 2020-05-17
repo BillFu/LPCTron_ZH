@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.9)
 
 project ("c_tools")
 
@@ -12,5 +12,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 # 包含子项目。
 # add_subdirectory ("src")
 add_subdirectory("lpctron_infer")
+add_subdirectory("tf_cpp_api_demo")
 # add_subdirectory ("posix_ipc")
 # add_subdirectory(thirdparty)
