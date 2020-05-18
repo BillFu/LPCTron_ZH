@@ -12,6 +12,7 @@ inference_model.pb
 
 c_tools/thirdparty/
 c_tools/tf_c_api_1.15.0/
+c_tools/tensorflow-1.15.0/
 c_tools/build/
 c_tools/cmake-build-release/
 
