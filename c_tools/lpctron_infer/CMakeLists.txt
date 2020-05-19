@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 
 project(lpctron_infer CXX)
-link_directories(../tensorflow-1.15.0/lib)
+
+link_directories(../tf_c_api-1.15.0/lib)
 
 set(LPCNET_INFER3_FILES lpcnet_infer3.cpp lpcnet.cpp nnet.cpp nnet_data.c freq.cpp
         kiss_fft.c pitch.cpp celt_lpc.cpp vec_avx.h)
@@ -38,7 +39,7 @@ target_compile_features(taco_infer_cpp_2 PUBLIC cxx_std_11)
 # target_include_directories(mini_model PUBLIC ../tensorflow-1.15.0/include)
 # target_link_libraries(mini_model tensorflow)
 
-target_include_directories(taco_infer_cpp_0 PUBLIC ../tensorflow-1.15.0/include)
+target_include_directories(taco_infer_cpp_0 PUBLIC ../tf_c_api-1.15.0/include)
 target_link_libraries(taco_infer_cpp_0 tensorflow)
 
 # target_include_directories(taco_infer_cpp_2 PUBLIC ../tensorflow-1.15.0/include)

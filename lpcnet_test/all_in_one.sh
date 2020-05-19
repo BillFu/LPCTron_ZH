@@ -4,6 +4,6 @@
 
 chmod a+x lpcnet_infer
 
-./lpcnet_infer feature_1004.f32 synth_pcm4.f16
+./lpcnet_infer out_features.dat synth_pcm5.f16
 
-ffmpeg -f s16le -ar 16k -ac 1 -i synth_pcm4.f16 -ar 16k synth_16k_4.wav
+ffmpeg -f s16le -ar 16k -ac 1 -i synth_pcm5.f16 -ar 16k synth_16k_5.wav

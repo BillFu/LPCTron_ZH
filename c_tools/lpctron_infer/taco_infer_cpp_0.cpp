@@ -43,15 +43,16 @@ bool load_ipa_id_seq(const string& ipa_file_name, vector<int>& ipa_id_list)
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3)
+    if (argc != 4)
     {
         std::cerr << std::endl <<
-            "Usage: ./taco_infer_cpp <ipa_id_seq file> <tacotron model file>" << std::endl;
+            "Usage: ./taco_infer_cpp <ipa_id_seq file> <tacotron model file> <out_feature_file.dat>" << std::endl;
         return 1;
     }
 
     std::string ipa_seq_file_name = argv[1];
     std::string taco_model_file_name = argv[2];
+    std::string out_feature_file_name = argv[3];
 
     cout << "IPA ID Seq File: " << ipa_seq_file_name << endl;
     cout << "Tacotron Model File: " << taco_model_file_name << endl;
@@ -153,14 +154,35 @@ int main(int argc, char* argv[])
 
     if (status == TFUtils::SUCCESS)
     {
+        //https://github.com/tensorflow/tensorflow/blob/master/tensorflow/c/c_api_test.cc
         cout << "run session successfully done!"<< endl;
-        /*
         TF_Tensor* mels_out_tensor = output_tensors[0];
-        const std::vector<std::vector<float>> mels_data =
-                TFUtils::GetTensorsData<std::vector<float>>(mels_out_tensor);
-        int frame_num = mels_data.size();
-        cout << "the number of the predicted frames: " << frame_num << endl;
-        */
+
+        int dims = TF_NumDims(mels_out_tensor);
+        cout << "the dims of mels_out_tensor: "<< dims << endl;
+
+        int dim0 = TF_Dim(mels_out_tensor, 0);
+        int dim1 = TF_Dim(mels_out_tensor, 1);
+        int dim2 = TF_Dim(mels_out_tensor, 2);
+
+        cout << "the dim 0 of mels_out_tensor: "<< dim0 << endl;
+        cout << "the dim 1 of mels_out_tensor: "<< dim1 << endl;
+        cout << "the dim 2 of mels_out_tensor: "<< dim2 << endl;
+
+        cout << "tensor type: " << TF_TensorType(mels_out_tensor) << endl;
+        int num_bytes = TF_TensorByteSize(mels_out_tensor);
+        cout << "Bytes: " << num_bytes << endl;
+
+        float* mels_data = static_cast<float*>(TF_TensorData(mels_out_tensor));
+
+        ofstream out(out_feature_file_name, ios::out | ios::binary);
+        if(!out) {
+            cout << "Cannot open out feature data file.";
+            return 1;
+        }
+
+        out.write((char*)mels_data, num_bytes);
+        out.close();
     }
     else
     {
