@@ -2,7 +2,8 @@
 
 .DS_Store
 
-bin/
+bin/release/tacotron.pb
+bin/debug/tacotron.pb
 
 cmake-build-release/
 cmake-build-debug/
