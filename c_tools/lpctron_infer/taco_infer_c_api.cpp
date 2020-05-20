@@ -9,8 +9,8 @@
 #include <string>
 
 #include "TFUtils.hpp"
-#include "tf_diagnosis.h"
-#include "scope_guard.hpp"
+//#include "tf_diagnosis.h"
+//#include "scope_guard.hpp"
 #include <tensorflow/c/c_api.h>
 
 using namespace std;
@@ -84,17 +84,8 @@ int main(int argc, char* argv[])
         std::cerr << "ipa id seq loaded successfully." << endl;
     }
 
-    auto status0 = TF_NewStatus();
-    SCOPE_EXIT{ TF_DeleteStatus(status0); }; // Auto-delete on scope exit.
-
-    PrintOpInfo(graph, "inputs", status0);
-    std::cout << std::endl;
-
-    PrintOpInfo(graph, "input_lengths", status0);
-    std::cout << std::endl;
-
-    PrintOpInfo(graph, "model/inference/add", status0);
-    std::cout << std::endl;
+    //auto status0 = TF_NewStatus();
+    //SCOPE_EXIT{ TF_DeleteStatus(status0); }; // Auto-delete on scope exit.
 
     TF_Output inputs_op = TFU.GetOperationByName("inputs", 0);
     TF_Output input_lengths_op = TFU.GetOperationByName("input_lengths", 0);
