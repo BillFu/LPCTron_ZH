@@ -1,0 +1,18 @@
+
+syntax = "proto3";
+
+service backend_infer {
+    rpc commitJob(JobRequest) returns (JobReply) {}
+}
+
+//消息中定义的每个字段都有一个唯一整数编号。
+message JobRequest {
+    string sentence_id = 1;   //must conform with the specification
+    string sr = 2;   // "8k" or "16k", sample rate used to synthesize the output wave
+    string ipa_id_seq = 3; // encode an int array or list into a string
+}
+
+message JobReply {
+    bool isOK = 1;
+    string error_msg = 2;
+}
