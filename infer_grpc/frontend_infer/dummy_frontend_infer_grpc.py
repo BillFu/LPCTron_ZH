@@ -14,7 +14,7 @@ def run(server_address):
 		ipa_id_seq="1 3 5 7 9 2 4 6 8 10")
 
 	job_response = backend_stub.commitJob(job_request)
-	print("response received, isOK: " + job_response.isOK)
+	print("response received, isOK: {}".format(job_response.isOK))
 
 
 
