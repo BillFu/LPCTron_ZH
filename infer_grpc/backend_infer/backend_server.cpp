@@ -108,6 +108,7 @@ int main(int argc, char** argv) {
     cout << "out pcm dir: " << out_pcm_dir << endl;
     cout << "out wav dir: " << out_wav_dir << endl;
 
+    /*
     // TFUtils init
     TFUtils TFU;
     TFUtils::STATUS status = TFU.LoadModel(taco_model_file_name);
@@ -123,8 +124,9 @@ int main(int argc, char** argv) {
 
     LPCNetState* lpcnet;
     lpcnet = lpcnet_create();
+    */
 
-    // RunServer(server_address);
+    RunServer(server_address);
 
     return 0;
 }
