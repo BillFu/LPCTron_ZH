@@ -6,3 +6,5 @@ cmake-build-debug/
 cmake-build-release/
 
 tf_c_api-1.15.0/
+
+tacotron.pb

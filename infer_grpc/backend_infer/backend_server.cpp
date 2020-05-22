@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 
     if (argc != 4)
     {
-        cout << "Usage: ./backend_infer <tacotron model file> <out_pcm_dir> <out_wav_dir>" << endl;
+        cout << "Usage: ./backend_server <tacotron model file> <out_pcm_dir> <out_wav_dir>" << endl;
         return 1;
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     TFUtils::STATUS status = TFU.LoadModel(taco_model_file_name);
     if (status != TFUtils::SUCCESS)
     {
-        std::cerr << "Can't load tacotron model from file: " << taco_model_file_name << endl;
+        cout << "Can't load tacotron model from file: " << taco_model_file_name << endl;
         return 1;
     }
     else
