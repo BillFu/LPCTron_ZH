@@ -20,6 +20,7 @@ include_directories(/usr/local/include)
 # add_executable(dummy_backend dummy_backend.cpp  backend_infer.pb.cc backend_infer.grpc.pb.cc)
 add_executable(backend_server
         backend_server.cpp
+        backend_implement.cpp
         backend_infer.pb.cc
         backend_infer.grpc.pb.cc
         TFUtils.cpp
