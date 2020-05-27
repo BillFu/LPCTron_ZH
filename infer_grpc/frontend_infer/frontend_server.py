@@ -9,6 +9,7 @@ from .frontend.hz2ipa import createCmdPairTuple, hz2py, \
 
 
 # input a normalized and cleaned sentence, return the ipa id sequence of it
+# the return value has such form: [55, 46, 21, ..., 85]
 def build_ipa_seq(normalized_hz_line):
 	cleaned_sentence = filter_punct_mark(normalized_hz_line)
 	py_seq = hz2py(cleaned_sentence)
@@ -22,23 +23,52 @@ def build_ipa_seq(normalized_hz_line):
 	return ipa_id_seq
 
 
-def run(server_address):
+def build_ipa_seq_str(normalized_hz_line):
+	ipa_id_seq = build_ipa_seq(normalized_hz_line)
+	ipa_id_str_seq = [str(id) for id in ipa_id_seq]
+	ipa_id_seq_str = " ".join(ipa_id_str_seq)
+	return ipa_id_seq_str
+
+
+def initialize(server_address):
+	# don't forget to initialize py2ipa module by calling the following function!!!
+	createCmdPairTuple()
+
 	# 连接 rpc 服务器
 	channel = grpc.insecure_channel(server_address)
-
 	# 调用 rpc 服务
 	backend_stub = backend_inferStub(channel)
-	
-	job_request = JobRequest(sentence_id='1009', sr='16k',
-		ipa_id_seq="18 29 25 6 23 31 11 33 16 6 43 25 17 5 23 34 7 23 36 29 28 6 26 25 6 23 36 38 5 36 32 28 6 21 8 16 3 27 33 16 4 43 32 20 4 25 17 5 23 34 7 23 36 38 6 36 29 28 3 23 31 11 33 16 6 10 9 11 6 23 31 27 33 6 25 9 11 6 11 6 18 8 11 5 25 5 36 38 4 32 20 6 27 33 16 4 41 1")
 
-	job_response = backend_stub.commitJob(job_request)
-	print("response received, isOK: {}".format(job_response.isOK))
+	return True, backend_stub
 
+
+def do_infer(backend_stub, sentence_id, normalized_hz_line, sr):
+	ipa_id_seq_str = build_ipa_seq_str(normalized_hz_line)
+
+	job_request = JobRequest(sentence_id=sentence_id, sr=sr,
+		ipa_id_seq=ipa_id_seq_str)
+
+	try:
+		job_response = backend_stub.commitJob(job_request)
+		print("response received, isOK: {}".format(job_response.isOK))
+	except grpc.RpcError as rpc_error_call:
+		code = rpc_error_call.code()
+		print("Exception Happened to call gRPC, error code: {}".format(code))
 
 
 if __name__ == '__main__':
-	server_address = "localhost:50051"
+	backend_host = "localhost"
+	backend_port = 50051
+
+	if not backend_host:
+		print("the Host of backend server Not set correctly!")
+		exit(1)
+
+	if not backend_port:
+		print("the Port of backend server is listening to Not set correctly!")
+		exit(1)
+
+	server_address = "%s:%d" % (backend_host, backend_port)
 
 	"""
 	parser = argparse.ArgumentParser()
@@ -62,15 +92,15 @@ if __name__ == '__main__':
 	print("------------------------------------------------------------------------")
 	"""
 
-	# print("dummy frontend infer is running...")
+	is_ok, backend_stub = initialize(server_address)
 
-	# don't forget to initialize py2ipa module by calling the following function!!!
-	createCmdPairTuple()
+	if not is_ok:
+		print("failed to initialize, maybe because backend server is NOT RUNNING!")
+		exit(1)
 
-	input_sentence = "我的头，向山沟，追寻逝去的从前。" 
-	sentence_id = "1008" 
+	normalized_hz_line = "我的头，向山沟，追寻逝去的从前。"
+	sentence_id = "1008"
+	sr = "8k"
+	print("successfully initialized!")
 
-	ipa_id_seq = build_ipa_seq(input_sentence)
-	print("ipa_id_seq: {}".format(ipa_id_seq))
-
-	# run(server_address)
+	do_infer(backend_stub, sentence_id, normalized_hz_line, sr)
