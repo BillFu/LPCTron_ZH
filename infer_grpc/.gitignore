@@ -8,3 +8,7 @@ cmake-build-release/
 tf_c_api-1.15.0/
 
 tacotron.pb
+
+frontend_infer/__pycache__/
+frontend_infer/frontend/__pycache__/
+
