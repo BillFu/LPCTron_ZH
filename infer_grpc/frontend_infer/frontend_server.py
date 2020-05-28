@@ -41,6 +41,7 @@ def initialize(server_address):
 
 	return True, backend_stub
 
+# if gRPC call is OK, return true and None as error message
 
 def do_infer(backend_stub, sentence_id, normalized_hz_line, sr):
 	ipa_id_seq_str = build_ipa_seq_str(normalized_hz_line)
@@ -51,9 +52,12 @@ def do_infer(backend_stub, sentence_id, normalized_hz_line, sr):
 	try:
 		job_response = backend_stub.commitJob(job_request)
 		print("response received, isOK: {}".format(job_response.isOK))
+		return (True, job_response, "gRPC call is OK.")
 	except grpc.RpcError as rpc_error_call:
 		code = rpc_error_call.code()
-		print("Exception Happened to call gRPC, error code: {}".format(code))
+		# print("Exception Happened to call gRPC, error code: {}".format(code))
+		error_reason0 = "gRPC Error: {}".format(code)
+		return (False, None, error_reason0)
 
 
 if __name__ == '__main__':
@@ -103,4 +107,11 @@ if __name__ == '__main__':
 	sr = "8k"
 	print("successfully initialized!")
 
-	do_infer(backend_stub, sentence_id, normalized_hz_line, sr)
+	is_gRPC_OK,  job_response, error_reason = \
+		do_infer(backend_stub, sentence_id, normalized_hz_line, sr)
+
+	if not is_gRPC_OK:
+		print(error_reason)
+	else:
+		print("gRPC OK.")
+		print("job_response: {}".format(job_response))
