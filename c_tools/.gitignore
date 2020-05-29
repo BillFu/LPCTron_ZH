@@ -3,6 +3,7 @@
 .DS_Store
 
 bin/release/tacotron.pb
+bin/release/libtensorflow_cc.so.1
 bin/debug/tacotron.pb
 
 cmake-build-release/
