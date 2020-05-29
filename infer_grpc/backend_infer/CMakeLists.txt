@@ -45,3 +45,5 @@ target_compile_features(pcm2wav_demo PUBLIC cxx_std_11)
 
 # target_link_libraries(dummy_backend protobuf grpc grpc++)
 target_link_libraries(backend_server protobuf grpc grpc++ tensorflow m)
+
+target_link_libraries(pcm2wav_demo  avformat avcodec swresample swscale avutil)
