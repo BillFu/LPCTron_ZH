@@ -9,7 +9,6 @@ set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 
-# set(CMAKE_CXX_STANDARD 11)
 
 link_directories(../tf_c_api-1.15.0/lib)
 include_directories(../tf_c_api-1.15.0/include)
@@ -28,6 +27,9 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
+add_executable(pcm2wav pcm2wav.cpp AudioGenerater.cpp)
+add_executable(pcm2wav_demo pcm2wav_demo.cpp)
+
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
 target_compile_options(backend_server
@@ -37,6 +39,9 @@ target_compile_options(backend_server
         PRIVATE "-mf16c")
 
 target_compile_features(backend_server PUBLIC cxx_std_11)
+target_compile_features(pcm2wav PUBLIC cxx_std_11)
+target_compile_features(pcm2wav_demo PUBLIC cxx_std_11)
+
 
 # target_link_libraries(dummy_backend protobuf grpc grpc++)
 target_link_libraries(backend_server protobuf grpc grpc++ tensorflow m)
