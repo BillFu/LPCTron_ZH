@@ -10,8 +10,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 
 
-link_directories(../tf_c_api-1.15.0/lib)
-include_directories(../tf_c_api-1.15.0/include)
+# link_directories(../tf_c_api-1.15.0/lib)
+# include_directories(../tf_c_api-1.15.0/include)
 
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
