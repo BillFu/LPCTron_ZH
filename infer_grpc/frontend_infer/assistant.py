@@ -30,7 +30,7 @@ def load_config_data(config_file, module_logger):
 			error_reason = "error in config file: '{}'.".format(config_file)
 			return None, True, error_reason
 
-	needed_keys = ["duoyinzi_dict", "chars_limit"]
+	needed_keys = ["duoyinzi_dict", "chars_limit", "backend_host", "backend_port"]
 
 	for key in needed_keys:
 		if key not in config.keys():

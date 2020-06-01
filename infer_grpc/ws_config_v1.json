@@ -1,4 +1,7 @@
 {
 	"duoyinzi_dict" : "data/dyz_dict.txt",
-	"chars_limit"   : 100
+	"chars_limit"   : 100,
+
+	"backend_host"  : "localhost",
+	"backend_port"  : 50051
 }

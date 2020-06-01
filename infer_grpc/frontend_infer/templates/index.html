@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LPCTron TTS API</title>
+    <link rel="stylesheet" type="text/css" href="/static/mystyle.css">
+</head>
+<body>
+    <h1 align="center" style="color:blue;">LPCTron TTS API</h1>
+    <h2>usage: http://ip:port/tts_api/?sentence_id=1001&sample_rate=8000&volume_boost=0&speed_scale=1.0&need_hpf=true&sentence=我穷得吃不起饭了，哪里有钱还帐
+    </h2>
+    <h2>note: volume_boost参数可以省略</h2>
+
+    <h3>测试</h3>
+    <form action="/lt_tts_api/" method="get">
+        sentence_id: <input type="text" name="sentence_id" id="sentence_id"
+                            value="1001" ><br>
+        sample_rate: <input type="text" name="sample_rate"
+                            id="sample_rate" value="8000"><br>
+        sentence: <input type="text" name="sentence" id="sentence"
+                    value="我穷得吃不起饭了，哪里有钱付款"><br>
+        volume_boost: <input type="text" name="volume_boost" id="volume_boost"
+                    value="1.0"><br>
+        <input type="submit"  />
+    </form>
+</body>
+</html>

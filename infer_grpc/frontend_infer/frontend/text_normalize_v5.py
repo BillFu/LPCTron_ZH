@@ -1,8 +1,6 @@
 import re
 import argparse
 
-from .synth_frontend import clean_text
-
 
 general_num_dict = {'1':'一','2':'二','3':'三','4':'四','5':'五',
 			'6':'六','7':'七','8':'八','9':'九','0':'零',
@@ -21,6 +19,15 @@ index_dict = {1:'', 2:'十', 3:'百', 4:'千', 5:'万',
 
 not_implemented_tag = ['English_Letters', 'English_Word', 'Name']
 implemented_tag = ['General_Numeric', 'Digital_Sequence', 'Telephone','Zip', 'ID_Card']
+
+
+## remove non-stop symbol, such as 引号、书名号、各类括号、空格
+## remove digits, english, etc.
+def clean_text(in_text):
+	cleaned_text = re.sub('[\'\"“”<>《》（）(){}\[\] ]', '', in_text)
+	cleaned_text = cleaned_text.replace("……", "…")
+
+	return cleaned_text  #
 
 
 def is_pure_arab_number(num_str):

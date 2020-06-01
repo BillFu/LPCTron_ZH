@@ -2,6 +2,7 @@ import logging
 import argparse
 import sys
 import re
+import grpc
 
 from flask import Flask, jsonify, request, render_template
 
@@ -12,6 +13,13 @@ from .message import Request_Illegal_Codes, Request_Illegal_Info
 from .frontend.text_normalize_v5 import canNormalizeV3
 from .frontend.fix_duoyinzi import primary_clean_text
 from .frontend.illegal_char import containsIllegalChar
+
+from .frontend.ipa_text import text_to_sequence
+from .frontend.hz2ipa import createCmdPairTuple, hz2py, \
+	filter_punct_mark, cal_ipa_seq
+
+from .backend_infer_pb2 import JobRequest
+from .backend_infer_pb2_grpc import backend_inferStub
 
 #######################################################################
 # LPCTron TTS Web Service
@@ -77,14 +85,6 @@ def check_request_legal(request):
 	elif volume_boost_db < -6.0:
 		volume_boost_db = -6.0
 
-	speed_scale = request.args.get('speed_scale', default=1.0, type=float)
-	if speed_scale <= 0:
-		speed_scale = 1.0
-
-	pause_scale = request.args.get('pause_scale', default=1.0, type=float)
-	if pause_scale <= 0:
-		pause_scale = 1.0
-
 	if containsIllegalChar(sentence):
 		code = Request_Illegal_Codes.ILLEGAL_CHAR_IN_SENTENCE
 		return sentence_id, code.value, Request_Illegal_Info[code], None
@@ -99,10 +99,7 @@ def check_request_legal(request):
 			"raw_sentence": raw_sentence,
 			"normal_result": normal_result,
 			"sample_rate": sample_rate,
-			"need_hpf": need_hpf,
-			"volume_boost": volume_boost_db,
-			"speed_scale": speed_scale,
-			"pause_scale": pause_scale,
+			"volume_boost": volume_boost_db
 		}
 		return sentence_id, Request_Illegal_Codes.ALL_IS_OK.value, None, job
 
@@ -149,6 +146,23 @@ def inference():
 
 def make_prepare():
 	global config, logger
+
+	# don't forget to initialize py2ipa module by calling the following function!!!
+	createCmdPairTuple()
+
+	init_grpc_stub(backend_host, backend_port)
+
+
+
+def init_grpc_stub(backend_host, backend_port):
+	server_address = "%s:%d" % (backend_host, backend_port)
+
+	# 连接 rpc 服务器
+	channel = grpc.insecure_channel(server_address)
+	# 调用 rpc 服务
+	backend_stub = backend_inferStub(channel)
+
+	return True, backend_stub
 
 
 if __name__ == '__main__':
