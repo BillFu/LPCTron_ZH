@@ -201,10 +201,10 @@ bool BackendInferImpl::infer(const vector<int>& ipa_id_list, const string& out_s
 
     string ffmpeg_cmd;
     if(out_sr == "16k")
-        ffmpeg_cmd = "ffmpeg -f s16le -ar 16k -ac 1 -i " +
+        ffmpeg_cmd = "ffmpeg -y -loglevel panic -f s16le -ar 16k -ac 1 -i " +
                      out_pcm_file_name + " -ar 16k " + out_wave_file_name;
     else  // 8k for the output wav file
-        ffmpeg_cmd = "ffmpeg -f s16le -ar 16k -ac 1 -i " +
+        ffmpeg_cmd = "ffmpeg -y -loglevel panic -f s16le -ar 16k -ac 1 -i " +
                      out_pcm_file_name + " -ar 8k " + out_wave_file_name;
 
     system(ffmpeg_cmd.c_str());
