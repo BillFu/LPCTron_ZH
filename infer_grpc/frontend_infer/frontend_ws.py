@@ -1,0 +1,195 @@
+import logging
+import argparse
+import sys
+import re
+
+from flask import Flask, jsonify, request, render_template
+
+from .my_logger import Log_info
+from .assistant import load_config_data, load_duoyinzi_dict
+from .message import Request_Illegal_Codes, Request_Illegal_Info
+
+from .frontend.text_normalize_v5 import canNormalizeV3
+from .frontend.fix_duoyinzi import primary_clean_text
+from .frontend.illegal_char import containsIllegalChar
+
+#######################################################################
+# LPCTron TTS Web Service
+# Version 1.0.0
+lpctron_tts_version = "1.0.0"
+
+#######################################################################
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'f4scuy0bbucy10bG78gd2o9G1V3GkQ4=\n'
+
+# if Request_Illegal_Codes.ALL_IS_OK as the first value returned,
+# it means the request is legal, otherwise illegal
+# code.value, error_reason, normalized_result
+def check_request_legal(request):
+	global config, logger
+
+	chars_limit = config["chars_limit"]
+
+	sentence_id = request.args.get('sentence_id')
+	if sentence_id is None or sentence_id == "":
+		code = Request_Illegal_Codes.SENTENCE_ID_MISSING
+		return sentence_id, code.value, Request_Illegal_Info[code], None
+
+	raw_sentence = request.args.get('sentence')
+	if raw_sentence is None or raw_sentence == "":
+		code = Request_Illegal_Codes.SENTENCE_MISSING
+		return sentence_id, code.value, Request_Illegal_Info[code], None,
+
+	# logger.debug("input raw sentence:{}".format(raw_sentence))
+
+	# prosody marks are prohibited to exist in this version
+	prosody_mark_pattern = r'<([0-9])>'  # match <1>, <2>, etc
+	result_matched = re.findall(prosody_mark_pattern, raw_sentence)
+	if len(result_matched) > 0:  # found prosody mark in the previous version
+		code = Request_Illegal_Codes.NOT_NEED_PROSODY_MARK
+		return sentence_id, code.value, Request_Illegal_Info[code], None,
+
+	sentence = primary_clean_text(raw_sentence)
+	# logger.debug("sentence primarily cleaned :{}".format(sentence))
+
+	if len(sentence) == 0:
+		code = Request_Illegal_Codes.SENTENCE_IS_EMPTY
+		return sentence_id, code.value, Request_Illegal_Info[code], None
+
+	if len(sentence) > chars_limit:
+		illegal_code = Request_Illegal_Codes.TOO_MANY_CHARS
+		raw_error_msg = Request_Illegal_Info[illegal_code]
+		illegal_reason = "{} {}.".format(raw_error_msg, chars_limit)
+		return sentence_id, illegal_code.value, illegal_reason, None
+
+	sample_rate = request.args.get("sample_rate", default=8000, type=int)
+	if sample_rate not in [8000, 16000]:
+		code = Request_Illegal_Codes.SAMPLE_RATE_ERROR
+		return sentence_id, code.value, Request_Illegal_Info[code], None
+
+	need_hpf = True \
+		if request.args.get("need_hpf", default='false') == 'true' else False
+
+	volume_boost_db = request.args.get('volume_boost', default=0.0, type=float)
+	if volume_boost_db > 6.0:
+		volume_boost_db = 6.0
+	elif volume_boost_db < -6.0:
+		volume_boost_db = -6.0
+
+	speed_scale = request.args.get('speed_scale', default=1.0, type=float)
+	if speed_scale <= 0:
+		speed_scale = 1.0
+
+	pause_scale = request.args.get('pause_scale', default=1.0, type=float)
+	if pause_scale <= 0:
+		pause_scale = 1.0
+
+	if containsIllegalChar(sentence):
+		code = Request_Illegal_Codes.ILLEGAL_CHAR_IN_SENTENCE
+		return sentence_id, code.value, Request_Illegal_Info[code], None
+
+	can_normal, failed_reason, normal_result = canNormalizeV3(sentence)
+	if not can_normal:
+		code = Request_Illegal_Codes.FAILED_TO_NORMALIZE
+		return sentence_id, code.value, failed_reason, None
+	else:
+		job = {
+			"sentence_id": sentence_id,
+			"raw_sentence": raw_sentence,
+			"normal_result": normal_result,
+			"sample_rate": sample_rate,
+			"need_hpf": need_hpf,
+			"volume_boost": volume_boost_db,
+			"speed_scale": speed_scale,
+			"pause_scale": pause_scale,
+		}
+		return sentence_id, Request_Illegal_Codes.ALL_IS_OK.value, None, job
+
+
+@app.route('/')
+def hello_world():
+	return render_template('index.html')
+
+
+@app.route('/lt_tts_api/', methods=['GET'])
+def inference():
+	global config
+
+	sentence_id, code, reason, job = check_request_legal(request)
+
+	if code != Request_Illegal_Codes.ALL_IS_OK.value:  # FAILED to pass check
+		result = {"code": -100, "sentence_id": sentence_id, "reason": reason}
+		return jsonify(result)
+
+	# up here, text normalization finished, basic cleaning done,
+	# punctuations still remained.
+	# hts_label_lines = frontend_engine.inference(job)
+
+	# -------# should be deleted when to release ------------
+	# start = timer()
+	# -------------------------------------------------------
+
+	# wav_file_base_name, wav_file_size = \
+	#	acoustic_engine.inference(job, hts_label_lines)
+
+	# -------# should be deleted when to release--------------
+	# end = timer()
+	# consumed_time = timedelta(seconds=end - start)
+	# print("====time elapsed: {}====".format(consumed_time))
+	#--------------------------------------------------------
+
+	# result = {"code": 100, "sentence_id": sentence_id,
+	#		"wav_file": wav_file_base_name}
+
+	result = {"code": 100, "sentence_id": sentence_id,
+			"wav_file": "1010.wav"}
+	return jsonify(result)
+
+
+def make_prepare():
+	global config, logger
+
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(
+		description="LPCTron TTS Web Service.")
+
+	parser.add_argument(
+		"--config_file",
+		help="full path of config file.")
+
+	parser.add_argument(
+		"--port",
+		type=int,
+		help="the port of api server bind.")
+
+	parser.add_argument(
+		"--server_id",
+		type=int,
+		help="ID to identify the api server.")
+
+	args = parser.parse_args()
+
+	log_info = Log_info("lt_ws_{}".format(args.server_id))
+	# logger is a global variable
+	logger = log_info.main(logging.DEBUG, logging.DEBUG, logging.DEBUG)
+
+	config, has_error, error_reason = load_config_data(args.config_file, logger)
+	if has_error:
+		logger.error(error_reason)
+		sys.exit(0)
+
+	logger.info("The config data has been successfully loaded.")
+
+	has_error, error_reason = make_prepare()
+	if has_error:
+		logger.error(error_reason)
+		sys.exit(0)
+
+	logger.info("LPCTron TTS Web Service (version: {}) is ready to serve ..."
+				.format(lpctron_tts_version))
+
+	app.run(host='0.0.0.0', port=args.port, debug=False)
+
+	# test_front_end()
