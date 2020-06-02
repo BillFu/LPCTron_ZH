@@ -14,9 +14,8 @@ from .frontend.text_normalize_v5 import canNormalizeV3
 from .frontend.fix_duoyinzi import primary_clean_text
 from .frontend.illegal_char import containsIllegalChar
 
-from .frontend.ipa_text import text_to_sequence
-from .frontend.hz2ipa import createCmdPairTuple, hz2py, \
-	filter_punct_mark, cal_ipa_seq
+from .frontend.hz2ipa import createCmdPairTuple
+from .frontend_utils import build_ipa_seq_str
 
 from .backend_infer_pb2 import JobRequest
 from .backend_infer_pb2_grpc import backend_inferStub
@@ -121,22 +120,12 @@ def inference():
 		result = {"code": -100, "sentence_id": sentence_id, "reason": reason}
 		return jsonify(result)
 
+
 	# up here, text normalization finished, basic cleaning done,
 	# punctuations still remained.
-	# hts_label_lines = frontend_engine.inference(job)
+	normalized_hz_line = job[""]
+	ipa_id_seq_str = build_ipa_seq_str(normalized_hz_line)
 
-	# -------# should be deleted when to release ------------
-	# start = timer()
-	# -------------------------------------------------------
-
-	# wav_file_base_name, wav_file_size = \
-	#	acoustic_engine.inference(job, hts_label_lines)
-
-	# -------# should be deleted when to release--------------
-	# end = timer()
-	# consumed_time = timedelta(seconds=end - start)
-	# print("====time elapsed: {}====".format(consumed_time))
-	#--------------------------------------------------------
 
 	# result = {"code": 100, "sentence_id": sentence_id,
 	#		"wav_file": wav_file_base_name}
@@ -181,6 +170,7 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
+	"""
 	config, has_error, error_reason = load_config_data(args.config_file)
 	if has_error:
 		logger.error(error_reason)
@@ -204,5 +194,9 @@ if __name__ == '__main__':
 				.format(lpctron_tts_version))
 
 	app.run(host='0.0.0.0', port=server_port, debug=False)
+	"""
+	# sentence = "一样的日子，异样的你和我。"
+	sentence = "您的账户余额为[22222.78]{General_Numeric}元，拖欠数额为[10234.22]{General_Numeric}元"
 
-	# test_front_end()
+	can_normal, failed_reason, normal_result = canNormalizeV3(sentence)
+	print("normal_result: {}".format(normal_result))
