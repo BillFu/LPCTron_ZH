@@ -15,7 +15,7 @@ from .frontend.fix_duoyinzi import primary_clean_text
 from .frontend.illegal_char import containsIllegalChar
 
 from .frontend.hz2ipa import createCmdPairTuple
-from .frontend_utils import build_ipa_seq_str
+from .frontend_utils import build_ipa_seq_str, combine_normal_result
 
 from .backend_infer_pb2 import JobRequest
 from .backend_infer_pb2_grpc import backend_inferStub
@@ -195,8 +195,12 @@ if __name__ == '__main__':
 
 	app.run(host='0.0.0.0', port=server_port, debug=False)
 	"""
-	# sentence = "一样的日子，异样的你和我。"
-	sentence = "您的账户余额为[22222.78]{General_Numeric}元，拖欠数额为[10234.22]{General_Numeric}元"
+	sentence = "一样的日子，异样的你和我。"
+	# sentence = "您的账户余额为[22222.78]{General_Numeric}元，拖欠数额为[10234.22]{General_Numeric}元"
 
 	can_normal, failed_reason, normal_result = canNormalizeV3(sentence)
 	print("normal_result: {}".format(normal_result))
+
+	normalized_sentence = combine_normal_result(normal_result)
+	print("final normal string: {}".format(normalized_sentence))
+
