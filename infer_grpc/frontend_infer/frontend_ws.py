@@ -20,6 +20,9 @@ from .frontend_utils import build_ipa_seq_str, combine_normal_result
 from .backend_infer_pb2 import JobRequest
 from .backend_infer_pb2_grpc import backend_inferStub
 
+from timeit import default_timer as timer
+from datetime import timedelta
+
 #######################################################################
 # LPCTron TTS Web Service
 # Version 1.0.0
@@ -120,19 +123,55 @@ def inference():
 		result = {"code": -100, "sentence_id": sentence_id, "reason": reason}
 		return jsonify(result)
 
+	# -------# should be deleted when to release ------------
+	# start = timer()
+	# -------------------------------------------------------
+
+	normal_result = job["normal_result"]
+	normalized_sentence = combine_normal_result(normal_result)
+	print("final normal string: {}".format(normalized_sentence))
 
 	# up here, text normalization finished, basic cleaning done,
 	# punctuations still remained.
-	normalized_hz_line = job[""]
-	ipa_id_seq_str = build_ipa_seq_str(normalized_hz_line)
+	ipa_id_seq_str = build_ipa_seq_str(normalized_sentence)
+	print("ipa_id_seq_str: {}".format(ipa_id_seq_str))
 
+	if job["sample_rate"] == 16000:
+		sr = "16k"
+	else:
+		sr = "8k"
 
-	# result = {"code": 100, "sentence_id": sentence_id,
-	#		"wav_file": wav_file_base_name}
+	job_request = JobRequest(sentence_id=sentence_id, sr=sr,
+							 ipa_id_seq=ipa_id_seq_str)
 
-	result = {"code": 100, "sentence_id": sentence_id,
-			"wav_file": "1010.wav"}
-	return jsonify(result)
+	try:
+		job_response = backend_stub.commitJob(job_request)
+		print("response received, isOK: {}".format(job_response.isOK))
+		# return (True, job_response, "gRPC call is OK.")
+
+		# -------# should be deleted when to release--------------
+		"""
+		end = timer()
+		consumed_time = timedelta(seconds=end - start)
+		print("====time elapsed: {}====".format(consumed_time))
+		"""
+		# --------------------------------------------------------
+		if job_response.isOK:  # everything is OK
+			wav_file_name = sentence_id +".wav"
+			result = {"code": 100, "sentence_id": sentence_id,
+				  "wav_file": wav_file_name}
+			return jsonify(result)
+		else:  # something wrong happened
+			result = {"code": -100, "sentence_id": sentence_id,
+					  "reason": job_response.error_msg}
+			return jsonify(result)
+	except grpc.RpcError as rpc_error_call:
+		code = rpc_error_call.code()
+		# print("Exception Happened to call gRPC, error code: {}".format(code))
+		error_reason0 = "gRPC Error: {}".format(code)
+		result = {"code": -100, "sentence_id": sentence_id,
+				  "reason": error_reason0}
+		return jsonify(result)
 
 
 def make_prepare():
@@ -170,7 +209,6 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	"""
 	config, has_error, error_reason = load_config_data(args.config_file)
 	if has_error:
 		logger.error(error_reason)
@@ -204,3 +242,6 @@ if __name__ == '__main__':
 	normalized_sentence = combine_normal_result(normal_result)
 	print("final normal string: {}".format(normalized_sentence))
 
+	ipa_id_seq_str = build_ipa_seq_str(normalized_sentence)
+	print("ipa_id_seq_str: {}".format(ipa_id_seq_str))
+	"""
