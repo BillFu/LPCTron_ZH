@@ -30,6 +30,8 @@ lpctron_tts_version = "1.0.0"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'f4scuy0bbucy10bG78gd2o9G1V3GkQ4=\n'
+backend_stub = None
+
 
 # if Request_Illegal_Codes.ALL_IS_OK as the first value returned,
 # it means the request is legal, otherwise illegal
@@ -146,12 +148,16 @@ def inference():
 
 def make_prepare():
 	global config, logger
+	global backend_stub
 
 	# don't forget to initialize py2ipa module by calling the following function!!!
 	createCmdPairTuple()
 
-	init_grpc_stub(backend_host, backend_port)
+	backend_host = config["backend_host"]
+	backend_port = config["backend_port"]
+	is_ok, backend_stub = init_grpc_stub(backend_host, backend_port)
 
+	return (is_ok, "No_Error")
 
 
 def init_grpc_stub(backend_host, backend_port):
@@ -160,9 +166,9 @@ def init_grpc_stub(backend_host, backend_port):
 	# 连接 rpc 服务器
 	channel = grpc.insecure_channel(server_address)
 	# 调用 rpc 服务
-	backend_stub = backend_inferStub(channel)
+	backend_stub0 = backend_inferStub(channel)
 
-	return True, backend_stub
+	return True, backend_stub0
 
 
 if __name__ == '__main__':
@@ -173,37 +179,30 @@ if __name__ == '__main__':
 		"--config_file",
 		help="full path of config file.")
 
-	parser.add_argument(
-		"--port",
-		type=int,
-		help="the port of api server bind.")
-
-	parser.add_argument(
-		"--server_id",
-		type=int,
-		help="ID to identify the api server.")
-
 	args = parser.parse_args()
 
-	log_info = Log_info("lt_ws_{}".format(args.server_id))
-	# logger is a global variable
-	logger = log_info.main(logging.DEBUG, logging.DEBUG, logging.DEBUG)
-
-	config, has_error, error_reason = load_config_data(args.config_file, logger)
+	config, has_error, error_reason = load_config_data(args.config_file)
 	if has_error:
 		logger.error(error_reason)
 		sys.exit(0)
 
+	server_id = config["ws_server_id"]
+	server_port = config["ws_server_port"]
+
+	log_info = Log_info("lt_ws_{}".format(server_id))
+	# logger is a global variable
+	logger = log_info.main(logging.DEBUG, logging.DEBUG, logging.DEBUG)
+	logger.info("This Server with an ID: {}.".format(server_id))
 	logger.info("The config data has been successfully loaded.")
 
-	has_error, error_reason = make_prepare()
-	if has_error:
+	is_ok, error_reason = make_prepare()
+	if not is_ok:
 		logger.error(error_reason)
 		sys.exit(0)
 
 	logger.info("LPCTron TTS Web Service (version: {}) is ready to serve ..."
 				.format(lpctron_tts_version))
 
-	app.run(host='0.0.0.0', port=args.port, debug=False)
+	app.run(host='0.0.0.0', port=server_port, debug=False)
 
 	# test_front_end()

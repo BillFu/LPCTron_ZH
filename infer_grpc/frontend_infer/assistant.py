@@ -11,7 +11,7 @@ from .frontend.fix_duoyinzi import load_duoyinzi_dict
 # init the common data, such as duoyinzi dict
 #	return config, False, "No Error", duoyinzi_registered, duoyinzi_dict
 
-def load_config_data(config_file, module_logger):
+def load_config_data(config_file):
 	my_file = Path(config_file)
 	if not my_file.is_file():
 		#  does not exist
@@ -23,14 +23,11 @@ def load_config_data(config_file, module_logger):
 			config = json.load(f, strict=False)
 		except ValueError:  # includes json.decoder.JSONDecodeError
 			# logger.log(level=logging.DEBUG, msg="Exception occurred", exc_info=True)
-			module_logger.log(
-				level=logging.ERROR,
-				msg="Exception when to load config file: {}".format(config_file),
-				exc_info=True)
 			error_reason = "error in config file: '{}'.".format(config_file)
 			return None, True, error_reason
 
-	needed_keys = ["duoyinzi_dict", "chars_limit", "backend_host", "backend_port"]
+	needed_keys = ["ws_server_id", "ws_server_port",
+		"duoyinzi_dict", "chars_limit", "backend_host", "backend_port"]
 
 	for key in needed_keys:
 		if key not in config.keys():

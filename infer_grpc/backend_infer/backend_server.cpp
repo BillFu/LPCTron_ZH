@@ -30,7 +30,8 @@ void RunServer(BackendInferImpl& service,
     */
 
     unique_ptr<Server> server(builder.BuildAndStart());
-    cout << "Server listening on " << server_address << std::endl;
+    cout << "*****An Instance of LPCTron TTS Backend Server listening on "
+        << server_address << "*****" << std::endl;
     server->Wait();
 }
 
