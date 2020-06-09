@@ -59,8 +59,6 @@ int main()
     struct SwrContext *audio_convert_ctx = NULL;
     char *extention;
 
-    //av_register_all();
-
     if (open_input_file(filename) < 0)
     {
         printf("failed to open input file");

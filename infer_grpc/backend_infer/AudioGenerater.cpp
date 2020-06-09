@@ -15,19 +15,20 @@ AudioGenerater::~AudioGenerater()
 
 }
 
-void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
+bool AudioGenerater::generateAudioFile(const string& fileName, void* pcmData,
+                                       size_t count_bytes_in_pcm)
 {
     AVCodecID codecID = AV_CODEC_ID_PCM_S16LE;
 
     // 查找Codec
     m_AudioCodec = avcodec_find_encoder(codecID);
     if (m_AudioCodec == nullptr)
-        return;
+        return false;
 
     // 创建编码器上下文
     m_AudioCodecContext = avcodec_alloc_context3(m_AudioCodec);
     if (m_AudioCodecContext == nullptr)
-        return;
+        return false;
 
     // 设置参数
     m_AudioCodecContext->bit_rate = 64000;
@@ -41,21 +42,23 @@ void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
     // 打开编码器
     int result = avcodec_open2(m_AudioCodecContext, m_AudioCodec, nullptr);
     if (result < 0)
-        goto end;
+        return false;
+
 
     // 创建封装
     if (!initFormat(fileName))
-        goto end;
+        return false;
+
 
     // 写入文件头
     result = avformat_write_header(m_FormatContext, nullptr);
     if (result < 0)
-        goto end;
+        return false;
 
     // 创建Frame
     AVFrame *frame = av_frame_alloc();
     if (frame == nullptr)
-        goto end;
+        return false;
 
     int nb_samples = 0;
     if (m_AudioCodecContext->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
@@ -73,7 +76,7 @@ void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
     if (result < 0)
     {
         av_frame_free(&frame);
-        goto end;
+        return false;
     }
 
     // 设置Frame为可写
@@ -81,14 +84,14 @@ void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
     if (result < 0)
     {
         av_frame_free(&frame);
-        goto end;
+        return false;
     }
 
     int perFrameDataSize = frame->linesize[0];
 
-    int count = pcmData.size() / perFrameDataSize;
+    int count = count_bytes_in_pcm / perFrameDataSize;
     bool needAddOne = false;
-    if (pcmData.size() % perFrameDataSize != 0)
+    if (count_bytes_in_pcm % perFrameDataSize != 0)
     {
         count++;
         needAddOne = true;
@@ -100,16 +103,17 @@ void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
         // 创建Packet
         AVPacket *pkt = av_packet_alloc();
         if (pkt == nullptr)
-            goto end;
+            return false;
         av_init_packet(pkt);
 
         if (i == count - 1)
-            perFrameDataSize = pcmData.size() % perFrameDataSize;
+            perFrameDataSize = count_bytes_in_pcm % perFrameDataSize;
 
         // 设置数据
         // 合成WAV文件
         memset(frame->data[0], 0, perFrameDataSize);
-        memcpy(frame->data[0], &(pcmData.data()[perFrameDataSize * i]), perFrameDataSize);
+        void* pFrameData =  (char*)pcmData + perFrameDataSize*i;
+        memcpy(frame->data[0], pFrameData, perFrameDataSize);
 
         frame->pts = frameCount++;
         // 发送Frame
@@ -141,10 +145,12 @@ void AudioGenerater::generateAudioFile(const string& fileName, void* pcmData)
     avio_closep(&m_FormatContext->pb);
     // 释放Frame内存
     av_frame_free(&frame);
-    end:
+
     avcodec_free_context(&m_AudioCodecContext);
     if (m_FormatContext != nullptr)
         avformat_free_context(m_FormatContext);
+
+    return true;
 }
 
 // this is a private method, not intended for being invoked publicly
@@ -152,7 +158,7 @@ bool AudioGenerater::initFormat(const string& audioFileName)
 {
     // 创建输出 Format 上下文
     int result = avformat_alloc_output_context2(&m_FormatContext,
-            nullptr, nullptr, audioFileName.toLocal8Bit().data());
+            nullptr, nullptr, audioFileName.data());
     if (result < 0)
         return false;
 
@@ -177,12 +183,12 @@ bool AudioGenerater::initFormat(const string& audioFileName)
     }
 
     // 打印FormatContext信息
-    av_dump_format(m_FormatContext, 0, audioFileName.toLocal8Bit().data(), 1);
+    av_dump_format(m_FormatContext, 0, audioFileName.data(), 1);
 
     // 打开文件IO
     if (!(m_OutputFormat->flags & AVFMT_NOFILE))
     {
-        result = avio_open(&m_FormatContext->pb, audioFileName.toLocal8Bit().data(), AVIO_FLAG_WRITE);
+        result = avio_open(&m_FormatContext->pb, audioFileName.data(), AVIO_FLAG_WRITE);
         if (result < 0)
         {
             avformat_free_context(m_FormatContext);

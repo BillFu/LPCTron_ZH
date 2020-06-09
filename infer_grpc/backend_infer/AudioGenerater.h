@@ -22,7 +22,9 @@ public:
     AudioGenerater();
     ~AudioGenerater();
 
-    void generateAudioFile(const string& fileName, void* pcmData);
+    // return true for OK
+    // return false for error happened
+    bool generateAudioFile(const string& fileName, void* pcmData, size_t count_bytes);
 
 private:
     AVCodec* m_AudioCodec = nullptr;

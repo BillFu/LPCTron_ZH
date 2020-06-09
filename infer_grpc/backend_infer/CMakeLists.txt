@@ -27,8 +27,8 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
-add_executable(pcm2wav pcm2wav.cpp AudioGenerater.cpp)
-add_executable(pcm2wav_demo pcm2wav_demo.cpp)
+# add_executable(pcm2wav pcm2wav.cpp AudioGenerater.cpp)
+add_executable(pcm2wav pcm2wav2.cpp)
 
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
@@ -40,10 +40,8 @@ target_compile_options(backend_server
 
 target_compile_features(backend_server PUBLIC cxx_std_11)
 target_compile_features(pcm2wav PUBLIC cxx_std_11)
-target_compile_features(pcm2wav_demo PUBLIC cxx_std_11)
-
 
 # target_link_libraries(dummy_backend protobuf grpc grpc++)
 target_link_libraries(backend_server protobuf grpc grpc++ tensorflow m)
 
-target_link_libraries(pcm2wav_demo  avformat avcodec swresample swscale avutil)
+# target_link_libraries(pcm2wav avformat avcodec avutil)
