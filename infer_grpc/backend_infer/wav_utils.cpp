@@ -37,30 +37,13 @@ char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
 }
 */
 
-char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
-{
-    ifstream ofs_pcm(out_pcm_file_name, ios::binary);
-
-    // copies all data into buffer
-    std::vector<unsigned char> pcm_buffer(std::istreambuf_iterator<char>(input), {});
-
-
-    char* pcm_raw_buffer = (char*)malloc(count_bytes * sizeof(char));
-    fread(pcm_raw_buffer, 1, count_bytes, file_pcm);
-
-    // free(buffer);
-    fclose(file_pcm); //关闭文件
-
-    return pcm_raw_buffer;
-}
-
 bool down_sample(const short* in_pcm_s16_buffer, int in_frames,
         int& out_actual_frames, short*& out_pcm_s16_buffer)
 {
     SRC_DATA src_data;
     memset (&src_data, 0, sizeof (src_data));
 
-    int out_frames = in_frames >> 2;
+    int out_frames = in_frames >> 1;
 
     float* in_pcm_float_buffer = (float*)malloc(in_frames * sizeof(float));
     float* out_pcm_float_buffer = (float*)malloc(out_frames * sizeof(float));

@@ -37,7 +37,7 @@ typedef struct _wav_head
     data_t      data;
 }wav_head;
 
-char* load_pcm_data(const char* pcm_file_name, int& count_bytes);
+// char* load_pcm_data(const char* pcm_file_name, int& count_bytes);
 
 bool down_sample(const short* in_pcm_s16_buffer, int in_frames,
                  int& out_actual_frames, short*& out_pcm_s16_buffer);
