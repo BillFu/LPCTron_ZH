@@ -1,19 +1,23 @@
 
 #include <cstdint>
 #include <iostream>
+#include <fstream>
+#include <iterator>
+#include <vector>
+
 #include <samplerate.h>
 #include "wav_utils.h"
 
 using namespace std;
 
-
+/*
 char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
 {
     FILE* file_pcm;
-
-    if ((file_pcm = fopen(pcm_file_name, "rb")) == NULL) //读取文件
+    file_pcm = fopen(pcm_file_name, "rb");
+    if (file_pcm == NULL) //读取文件
     {
-        cout << "open pcm file: " << pcm_file_name << endl;
+        // cout << "failed to open pcm file: " << pcm_file_name << endl;
         return NULL;
     }
 
@@ -31,7 +35,24 @@ char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
 
     return pcm_raw_buffer;
 }
+*/
 
+char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
+{
+    ifstream ofs_pcm(out_pcm_file_name, ios::binary);
+
+    // copies all data into buffer
+    std::vector<unsigned char> pcm_buffer(std::istreambuf_iterator<char>(input), {});
+
+
+    char* pcm_raw_buffer = (char*)malloc(count_bytes * sizeof(char));
+    fread(pcm_raw_buffer, 1, count_bytes, file_pcm);
+
+    // free(buffer);
+    fclose(file_pcm); //关闭文件
+
+    return pcm_raw_buffer;
+}
 
 bool down_sample(const short* in_pcm_s16_buffer, int in_frames,
         int& out_actual_frames, short*& out_pcm_s16_buffer)
