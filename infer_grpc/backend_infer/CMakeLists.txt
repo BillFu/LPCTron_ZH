@@ -16,6 +16,10 @@ include_directories(../tf_c_api-1.15.0/include)
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
 
+link_directories(~/libsamplerate/build)
+include_directories(~/libsamplerate/src)
+
+
 # add_executable(dummy_backend dummy_backend.cpp  backend_infer.pb.cc backend_infer.grpc.pb.cc)
 add_executable(backend_server
         backend_server.cpp
@@ -27,8 +31,7 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
-# add_executable(pcm2wav pcm2wav.cpp AudioGenerater.cpp)
-add_executable(pcm2wav pcm2wav4.cpp)
+add_executable(pcm2wav pcm2wav5.cpp wav_utils.cpp)
 
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
@@ -44,4 +47,4 @@ target_compile_features(pcm2wav PUBLIC cxx_std_11)
 # target_link_libraries(dummy_backend protobuf grpc grpc++)
 target_link_libraries(backend_server protobuf grpc grpc++ tensorflow m)
 
-# target_link_libraries(pcm2wav avformat avcodec avutil)
+target_link_libraries(pcm2wav samplerate)

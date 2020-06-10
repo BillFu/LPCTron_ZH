@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    //以下是创建wav头的HEADER;但.dwsize未定，因为不知道Data的长度。
+    //以下是创建wav头的HEADER;但len未定，因为不知道Data的长度。
     memcpy(header.riff.riff, "RIFF",4);
     memcpy(header.riff.wave, "WAVE",4);
 
