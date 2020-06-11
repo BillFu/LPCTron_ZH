@@ -3,7 +3,7 @@
 #include <iterator>
 #include <vector>
 
-#include "wav_utils.h"
+#include "wav_utils_v2.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     cout << "wav file: " << wav_file_name << endl;
 
     int count_bytes = 0;
-    char* pcm_raw_buffer = load_pcm_data(pcm_file_name.c_str(), count_bytes);
+    char *pcm_raw_buffer = load_pcm_data(pcm_file_name.c_str(), count_bytes);
     if (pcm_raw_buffer == NULL)
     {
         cout << "failed to load pcm file: " << pcm_file_name << endl;
@@ -37,35 +37,56 @@ int main(int argc, char **argv)
     }
 
     int in_frames = count_bytes / 2;
-    short* in_pcm_s16_buffer = (short*)pcm_raw_buffer;
+    short *in_pcm_s16_buffer = (short *) pcm_raw_buffer;
 
-    int out_actual_frames = 0;
-    short* out_pcm_s16_buffer = NULL;
-    bool is_ok = down_sample(in_pcm_s16_buffer, in_frames,
-            out_actual_frames, out_pcm_s16_buffer);
-    if(!is_ok)
+    // here the processing will be divided into two branches
+    if (out_sr == 16000)
     {
-        cout << "error happened in down_sample()." << endl;
+        bool is_ok = save_pcm_as_wav(wav_file_name.c_str(), out_sr,
+                                     in_pcm_s16_buffer, in_frames);
+        if (!is_ok)
+        {
+            cout << "error happened when save pcm as wav file." << endl;
+        }
+        else
+        {
+            cout << "OK when to save pcm as wav file." << endl;
+        }
     }
-    else
+    else  // for 8k
     {
-        cout << "OK when to call down_sample()." << endl;
-    }
+        int out_actual_frames = 0;
+        short *out_pcm_s16_buffer = NULL;
+        bool is_ok = down_sample(in_pcm_s16_buffer, in_frames,
+                             out_actual_frames, out_pcm_s16_buffer);
+        if (!is_ok)
+        {
+            cout << "error happened in down_sample()." << endl;
+            return -1;
+        }
+        else
+        {
+            cout << "OK when to call down_sample()." << endl;
+        }
 
-    is_ok = save_pcm_as_wav(wav_file_name.c_str(), out_sr,
-            out_pcm_s16_buffer, out_actual_frames);
+        is_ok = save_pcm_as_wav(wav_file_name.c_str(), out_sr,
+                                out_pcm_s16_buffer, out_actual_frames);
 
-    if(!is_ok)
-    {
-        cout << "error happened when save pcm as wav file." << endl;
-    }
-    else
-    {
-        cout << "OK when to save pcm as wav file." << endl;
-    }
+        if (!is_ok)
+        {
+            cout << "error happened when save pcm as wav file." << endl;
+        }
+        else
+        {
+            cout << "OK when to save pcm as wav file." << endl;
+        }
 
-    if (out_pcm_s16_buffer != NULL)
-        free(out_pcm_s16_buffer);
+        if (out_pcm_s16_buffer != NULL)
+            free(out_pcm_s16_buffer);
+    }  // end of 16K PCM ==> 8K WAV
 
+    if (pcm_raw_buffer != NULL)
+        free(pcm_raw_buffer);
+    
     return 0;
 }
