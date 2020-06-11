@@ -10,7 +10,7 @@
 
 using namespace std;
 
-/*
+
 char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
 {
     FILE* file_pcm;
@@ -35,7 +35,7 @@ char* load_pcm_data(const char* pcm_file_name, int& count_bytes)
 
     return pcm_raw_buffer;
 }
-*/
+
 
 bool down_sample(const short* in_pcm_s16_buffer, int in_frames,
         int& out_actual_frames, short*& out_pcm_s16_buffer)
@@ -63,7 +63,7 @@ bool down_sample(const short* in_pcm_s16_buffer, int in_frames,
         SRC_ZERO_ORDER_HOLD         = 3,
         SRC_LINEAR                  = 4
     */
-    int error = src_simple (&src_data, SRC_LINEAR, 1);
+    int error = src_simple (&src_data, SRC_SINC_BEST_QUALITY, 1);
     if( error != 0)
     {
         cout << "ERROR happened when to call src_simple(): " << src_strerror(error) << endl;

@@ -31,7 +31,7 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
-add_executable(pcm2wav pcm2wav5.cpp wav_utils.cpp)
+add_executable(pcm2wav pcm2wav6.cpp wav_utils.cpp)
 
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
