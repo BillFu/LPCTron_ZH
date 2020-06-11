@@ -23,7 +23,8 @@ include_directories(~/libsamplerate/src)
 # add_executable(dummy_backend dummy_backend.cpp  backend_infer.pb.cc backend_infer.grpc.pb.cc)
 add_executable(backend_server
         backend_server.cpp
-        backend_implement.cpp
+        backend_implement2.cpp
+        wav_utils_v2.cpp
         backend_infer.pb.cc
         backend_infer.grpc.pb.cc
         TFUtils.cpp
@@ -31,7 +32,7 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
-add_executable(pcm2wav pcm2wav6.cpp wav_utils_v2.cpp)
+# add_executable(pcm2wav pcm2wav6.cpp wav_utils_v2.cpp)
 
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
@@ -42,9 +43,9 @@ target_compile_options(backend_server
         PRIVATE "-mf16c")
 
 target_compile_features(backend_server PUBLIC cxx_std_11)
-target_compile_features(pcm2wav PUBLIC cxx_std_11)
+# target_compile_features(pcm2wav PUBLIC cxx_std_11)
 
 # target_link_libraries(dummy_backend protobuf grpc grpc++)
-target_link_libraries(backend_server protobuf grpc grpc++ tensorflow m)
+target_link_libraries(backend_server samplerate protobuf grpc grpc++ tensorflow m)
 
-target_link_libraries(pcm2wav samplerate)
+# target_link_libraries(pcm2wav samplerate)

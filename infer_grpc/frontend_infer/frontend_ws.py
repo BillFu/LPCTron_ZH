@@ -37,7 +37,7 @@ def hello_world():
 	return render_template('index.html')
 
 
-@app.route('/lpctron_api/', methods=['GET'])
+@app.route('/lt_tts_api/', methods=['GET'])
 def inference():
 	global config
 
