@@ -45,11 +45,9 @@ BackendInferImpl::~BackendInferImpl()
 }
 
 bool BackendInferImpl::initialize(const string& taco_model_file_name,
-                                  const string& out_pcm_dir,
                                   const string& out_wav_dir,
                                   string &error_msg)
 {
-    _out_pcm_dir = out_pcm_dir;
     _out_wav_dir = out_wav_dir;
 
     TFUtils::STATUS status = _tfu.LoadModel(taco_model_file_name);

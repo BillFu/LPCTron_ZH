@@ -41,7 +41,6 @@ private:
     TF_Output       _inputs_op;
     TF_Output       _input_lengths_op;
     TF_Output       _out_op;
-    string          _out_pcm_dir;
     string          _out_wav_dir;
 
 public:
@@ -50,8 +49,7 @@ public:
 
     // return true for success; otherwise false for failure
     bool initialize(const string& taco_model_file_name,
-            const string& out_pcm_dir, const string& out_wav_dir,
-            string &error_msg);
+            const string& out_wav_dir, string &error_msg);
 
     Status commitJob(ServerContext* context,
                      const ::JobRequest* request, ::JobReply* response)

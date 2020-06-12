@@ -39,25 +39,23 @@ int main(int argc, char** argv) {
     // Expect only arg: --db_path=path/to/route_guide_db.json.
     string server_address("0.0.0.0:50051");
 
-    if (argc != 4)
+    if (argc != 3)
     {
-        cout << "Usage: ./backend_server <tacotron model file> <out_pcm_dir> <out_wav_dir>" << endl;
+        cout << "Usage: ./backend_server <tacotron model file> <out_wav_dir>" << endl;
         return 1;
     }
 
     std::string taco_model_file_name = argv[1];
-    string out_pcm_dir = argv[2];
-    string out_wav_dir = argv[3];
+    string out_wav_dir = argv[2];
 
     cout << "Tacotron Model File: " << taco_model_file_name << endl;
-    cout << "out pcm dir: " << out_pcm_dir << endl;
     cout << "out wav dir: " << out_wav_dir << endl;
 
     BackendInferImpl service;
 
     string error_msg;
     bool is_ok = service.initialize(taco_model_file_name,
-                                    out_pcm_dir, out_wav_dir, error_msg);
+            out_wav_dir, error_msg);
     if(!is_ok)
     {
         cout << "Failed to initialize the Infer Service: " << error_msg << endl;
