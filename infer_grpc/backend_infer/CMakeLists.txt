@@ -13,12 +13,16 @@ link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
 
 if(LINUX)
+    message(STATUS "using LINUX configure...")
+
     link_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/lib)
     include_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/include)
 
     link_directories(../libsamplerate/build)
     include_directories(../libsamplerate/src)
 elseif(MACOS)
+    message(STATUS "using MacOS configure...")
+
     link_directories(../tf_c_api-1.15.0/lib)
     include_directories(../tf_c_api-1.15.0/include)
 
