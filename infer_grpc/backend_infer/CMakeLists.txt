@@ -12,8 +12,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
 
-message(STATUS "test message...")
-
 if (CMAKE_HOST_WIN32)
     set(WINDOWS 1)
 elseif (CMAKE_HOST_APPLE)
@@ -23,16 +21,12 @@ elseif (CMAKE_HOST_UNIX)
 endif ()
 
 if (LINUX)
-    message(STATUS "using LINUX configure...")
-
     link_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/lib)
     include_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/include)
 
     link_directories(../libsamplerate/build)
     include_directories(../libsamplerate/src)
 elseif (MACOS)
-    message(STATUS "using MacOS configure...")
-
     link_directories(../tf_c_api-1.15.0/lib)
     include_directories(../tf_c_api-1.15.0/include)
 
@@ -61,5 +55,22 @@ target_compile_options(backend_server
 
 target_compile_features(backend_server PUBLIC cxx_std_11)
 
-# target_link_libraries(dummy_backend protobuf grpc grpc++)
-target_link_libraries(backend_server samplerate protobuf grpc grpc++ tensorflow m)
+
+if (MACOS)
+    target_link_libraries(backend_server tensorflow samplerate protobuf grpc++ grpc gpr m)
+elseif (LINUX)
+    target_link_libraries(backend_server tensorflow samplerate libprotobuf.a
+            libgrpc++.a libgrpc.a libgpr.a m
+            z ssl cares crypto pthread upb
+            libabsl_strings.a libabsl_base.a
+            libabsl_strings_internal.a
+            libabsl_throw_delegate.a
+            libabsl_str_format_internal.a
+            libabsl_bad_optional_access.a
+            libabsl_dynamic_annotations.a
+            libabsl_int128.a
+            libabsl_log_severity.a
+            libabsl_raw_logging_internal.a
+            libabsl_spinlock_wait.a
+            libaddress_sorting.a)
+endif()
