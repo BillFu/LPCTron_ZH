@@ -12,7 +12,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
 
-if(LINUX)
+message(STATUS "test message...")
+
+if (CMAKE_HOST_WIN32)
+    set(WINDOWS 1)
+elseif (CMAKE_HOST_APPLE)
+    set(MACOS 1)
+elseif (CMAKE_HOST_UNIX)
+    set(LINUX 1)
+endif ()
+
+if (LINUX)
     message(STATUS "using LINUX configure...")
 
     link_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/lib)
@@ -20,7 +30,7 @@ if(LINUX)
 
     link_directories(../libsamplerate/build)
     include_directories(../libsamplerate/src)
-elseif(MACOS)
+elseif (MACOS)
     message(STATUS "using MacOS configure...")
 
     link_directories(../tf_c_api-1.15.0/lib)
