@@ -1,0 +1,1 @@
+docker run -p 50001:22 -p 50051:50051 --name backend_server -it backend_server:v1 bash 

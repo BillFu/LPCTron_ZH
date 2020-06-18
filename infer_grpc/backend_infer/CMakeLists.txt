@@ -21,8 +21,8 @@ elseif (CMAKE_HOST_UNIX)
 endif ()
 
 if (LINUX)
-    link_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/lib)
-    include_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/include)
+    # link_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/lib)
+    # include_directories(../libtensorflow-cpu-linux-x86_64-1.15.0/include)
 
     link_directories(../libsamplerate/build)
     include_directories(../libsamplerate/src)
