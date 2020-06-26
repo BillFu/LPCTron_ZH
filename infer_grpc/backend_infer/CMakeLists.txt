@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.9)
 
 project(backend_infer CXX)
 
+set(CMAKE_CXX_STANDARD 11)
+
+add_subdirectory(abseil-cpp)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/bin")
@@ -11,6 +15,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include)
+include_directories(/usr/local/include/eigen3)
+include_directories(/usr/local/include/tf)
 
 if (CMAKE_HOST_WIN32)
     set(WINDOWS 1)
@@ -45,6 +51,10 @@ add_executable(backend_server
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
+add_executable(dnn_part1 dnn_main_v1.cpp)
+target_compile_features(dnn_part1 PUBLIC cxx_std_11)
+target_link_libraries(dnn_part1 absl::strings)
+
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
 target_compile_options(backend_server
@@ -54,7 +64,6 @@ target_compile_options(backend_server
         PRIVATE "-mf16c")
 
 target_compile_features(backend_server PUBLIC cxx_std_11)
-
 
 if (MACOS)
     target_link_libraries(backend_server tensorflow samplerate protobuf grpc++ grpc gpr m)
