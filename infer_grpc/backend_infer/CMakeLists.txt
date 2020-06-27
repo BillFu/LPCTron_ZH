@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 
 project(backend_infer CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 add_subdirectory(abseil-cpp)
 
@@ -33,8 +33,8 @@ if (LINUX)
     link_directories(../libsamplerate/build)
     include_directories(../libsamplerate/src)
 elseif (MACOS)
-    link_directories(../tf_c_api-1.15.0/lib)
-    include_directories(../tf_c_api-1.15.0/include)
+    # link_directories(../tf_c_api-1.15.0/lib)
+    # include_directories(../tf_c_api-1.15.0/include)
 
     link_directories(~/libsamplerate/build)
     include_directories(~/libsamplerate/src)
@@ -52,8 +52,8 @@ add_executable(backend_server
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
 add_executable(dnn_part1 dnn_main_v1.cpp)
-target_compile_features(dnn_part1 PUBLIC cxx_std_11)
-target_link_libraries(dnn_part1 absl::strings)
+target_compile_features(dnn_part1 PUBLIC cxx_std_14)
+target_link_libraries(dnn_part1 absl::strings tensorflow_cc)
 
 target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 

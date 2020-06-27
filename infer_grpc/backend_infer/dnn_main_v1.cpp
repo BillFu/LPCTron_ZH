@@ -1,8 +1,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <tensorflow/cc/client/client_session.h>
-#include <tensorflow/cc/ops/standard_ops.h>
+#include "tensorflow/cc/client/client_session.h"
+#include "tensorflow/cc/ops/standard_ops.h"
 #include "tensorflow/core/framework/tensor.h"
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/summary/summary_file_writer.h"
@@ -67,7 +67,7 @@ Status WriteTensorToImageFile(const string& file_name, const int input_height,
     TF_CHECK_OK(session.Run({image}, &out_tensors));
 
     ofstream fs(file_name, ios::binary);
-    fs << out_tensors[0].scalar<string>()();
+    fs << out_tensors[0].scalar<float>()();
     return Status::OK();
 }
 
