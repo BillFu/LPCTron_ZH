@@ -44,7 +44,7 @@ Status ReadTensorFromImageFile(const string& file_name,
         GraphDef graph;
         TF_RETURN_IF_ERROR(root.ToGraphDef(&graph));
         SummaryWriterInterface* w;
-        TF_CHECK_OK(CreateSummaryFileWriter(1, 0, "/Users/bennyfriedman/Code/TF2example/TF2example/graphs", ".img-graph", Env::Default(), &w));
+        TF_CHECK_OK(CreateSummaryFileWriter(1, 0, "graphs", ".img-graph", Env::Default(), &w));
         TF_CHECK_OK(w->WriteGraph(0, make_unique<GraphDef>(graph)));
     }
     return Status::OK();
@@ -67,7 +67,7 @@ Status WriteTensorToImageFile(const string& file_name, const int input_height,
     TF_CHECK_OK(session.Run({image}, &out_tensors));
 
     ofstream fs(file_name, ios::binary);
-    fs << out_tensors[0].scalar<float>()();
+    fs << out_tensors[0].scalar<tensorflow::tstring>()();
     return Status::OK();
 }
 
@@ -81,7 +81,8 @@ int main(int argc, const char * argv[])
     vector<Tensor> resized_tensors;
 
     Status read_tensor_status = ReadTensorFromImageFile(image,
-            input_height, input_width, input_mean, input_std, &resized_tensors, true);
+            input_height, input_width, input_mean, input_std,
+            &resized_tensors, true);
     cout << resized_tensors[0].shape().DebugString() << endl;
     if (!read_tensor_status.ok())
     {
@@ -89,7 +90,7 @@ int main(int argc, const char * argv[])
         return -1;
     }
 
-    Status write_tensor_staus = WriteTensorToImageFile("output.jpg",
+    Status write_tensor_status = WriteTensorToImageFile("output.jpg",
             input_height, input_width, input_mean, input_std, resized_tensors);
     return 0;
 }
