@@ -40,34 +40,35 @@ elseif (MACOS)
     include_directories(~/libsamplerate/src)
 endif()
 
-add_executable(backend_server2
-        backend_server2.cpp
-        backend_imp3.cpp
+add_executable(backend_server
+        backend_server.cpp
+        backend_implement2.cpp
         wav_utils_v2.cpp
         backend_infer.pb.cc
         backend_infer.grpc.pb.cc
+        TFUtils.cpp
         nnet_data.cpp
         lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 
-# add_executable(dnn_part1 dnn_main_v1.cpp)
-# target_compile_features(dnn_part1 PUBLIC cxx_std_14)
-# target_link_libraries(dnn_part1 absl::strings tensorflow_cc)
+add_executable(dnn_part1 dnn_main_v1.cpp)
+target_compile_features(dnn_part1 PUBLIC cxx_std_14)
+target_link_libraries(dnn_part1 absl::strings tensorflow_cc)
 
-target_compile_definitions(backend_server2 PRIVATE __AVX__=1 TACOTRON2=1)
+target_compile_definitions(backend_server PRIVATE __AVX__=1 TACOTRON2=1)
 
-target_compile_options(backend_server2
+target_compile_options(backend_server
         PRIVATE "-mavx2"
         PRIVATE "-mfma"
         PRIVATE "-mavx"
         PRIVATE "-mf16c")
 
-target_compile_features(backend_server2 PUBLIC cxx_std_14)
+target_compile_features(backend_server PUBLIC cxx_std_11)
 
 if (MACOS)
-    target_link_libraries(backend_server2  tensorflow_cc samplerate protobuf grpc++ grpc gpr m)
+    target_link_libraries(backend_server tensorflow samplerate protobuf grpc++ grpc gpr m)
 elseif (LINUX)
-    target_link_libraries(backend_server2  tensorflow_cc samplerate libprotobuf.a
+    target_link_libraries(backend_server tensorflow samplerate libprotobuf.a
             libgrpc++.a libgrpc.a libgpr.a m
             z ssl cares crypto pthread upb
             libabsl_strings.a libabsl_base.a
