@@ -120,6 +120,7 @@ void handle_accept(ip::tcp::acceptor* acceptor,
         network_session::ptr session, const boost::system::error_code& err)
 {
     session->start();
+
     network_session::ptr new_session =
             network_session::new_instance(boost_io_service);
     acceptor->async_accept(new_session->sock(),
