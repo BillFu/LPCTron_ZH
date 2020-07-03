@@ -11,9 +11,13 @@ using namespace boost::asio;
 
 io_service boost_io_service;
 
+#define MEM_FN(x)       boost::bind(&self_type::x, shared_from_this())
+#define MEM_FN1(x,y)    boost::bind(&self_type::x, shared_from_this(),y)
+#define MEM_FN2(x,y,z)  boost::bind(&self_type::x, shared_from_this(),y,z)
 
 class network_session : public boost::enable_shared_from_this<network_session>
-        , boost::noncopyable {
+        , boost::noncopyable
+{
     typedef network_session self_type;
 
     network_session(io_service& an_io_service) : sock_(an_io_service)
@@ -47,28 +51,64 @@ private:
     {
         /*
         async_read(sock_, buffer(read_buffer_),
-                   MEM_FN2(read_complete,_1,_2), MEM_FN2(on_read,_1,_2));
-        // post_check_ping();
+                   MEM_FN2(is_read_complete,_1,_2), MEM_FN2(on_read,_1,_2));
         */
+
+        async_read(sock_, buffer(read_buffer_),
+                   MEM_FN2(on_read,_1,_2));
+
     }
 
-    size_t read_complete(const boost::system::error_code & err, size_t bytes)
+    /*
+    // A return value of 0 indicates that the read operation is complete.
+    // A non-zero return value indicates the maximum number of bytes to be read
+    // on the next call to the stream's async_read_some function.
+    size_t is_read_complete(const boost::system::error_code & err, size_t bytes)
     {
-        /*
-        if ( err) return 0;
+        if ( err)  // error happened
+            return 0;
+
         bool found = std::find(read_buffer_, read_buffer_ + bytes, '\n') < read_buffer_ + bytes;
+
         // we read one-by-one until we get to enter, no buffering
         return found ? 0 : 1;
+    }
+    */
+
+    void on_read(const error_code& ec, size_t bytes)
+    {
+        if (ec == boost::asio::error::eof)
+        {
+            // here we got the whole message
+            std::cout << "Received Bytes: " << bytes << std::endl;
+            read_buffer_[bytes] = '\n';
+            std::cout << "Received Message: " << read_buffer_ << std::endl;
+        }
+        else  // error happened
+        {
+            std::cout << "Network Error happened!" << std::endl;
+            stop();
+        }
+
+    }
+
+    void stop()
+    {
+        sock_.close();
+        /*
+        ptr self = shared_from_this();
+        array::iterator it = std::find(clients.begin(), clients.end(), self);
+        clients.erase(it);
+        update_clients_changed();
         */
-        return 0;  // later to delete this line
     }
 
 private:
     ip::tcp::socket sock_;
+    enum { buf_max_size = 2048 };
+    char read_buffer_[buf_max_size];
+    char write_buffer_[buf_max_size];
     /*
-    enum { max_msg = 1024 };
-    char read_buffer_[max_msg];
-    char write_buffer_[max_msg];
     bool started_;
     deadline_timer timer_;
     boost::posix_time::ptime last_ping;
