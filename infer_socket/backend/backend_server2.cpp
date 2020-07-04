@@ -15,6 +15,9 @@
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 struct info {
     const char *name;
     size_t total_drained;
@@ -37,10 +40,19 @@ void do_inference(struct bufferevent *buf_event)
 
     printf("tts inference is done.\n");
 
-    char reply_msg[] = "tts done";
-    size_t size_reply = strlen(reply_msg);
+    //char reply_msg[] = "tts done";
+    //size_t size_reply = strlen(reply_msg);
 
-    int result2 = bufferevent_write(buf_event, reply_msg, size_reply);
+    json reply = {
+            {"pi", 3.141},
+            {"happy", true},
+            {"name", "Niels"},
+            {"list", {1, 0, 2}}
+    };
+    std::string reply_str = reply.dump();
+    size_t size_reply = reply_str.length();
+
+    int result2 = bufferevent_write(buf_event, reply_str.c_str(), size_reply);
     if(result2 == -1) //failure
     {
         printf("error occurred when to send out reply.\n");
@@ -79,6 +91,20 @@ void read_callback(struct bufferevent *buf_event, void *ctx)
         in_msg[data_len] = '\n';
         printf("length of msg %d bytes \n", (int)data_len);
         printf("received msg: %s\n", in_msg);
+
+        auto job_json = json::parse(in_msg);
+        // serialization with pretty printing
+        // pass in the amount of spaces to indent
+        std::cout << job_json.dump(4) << std::endl;
+
+        /*
+        json j2 = {
+                {"pi", 3.141},
+                {"happy", true},
+                {"list", {1, 0, 2}}
+        };
+        std::cout << j2.dump() << std::endl;
+        */
 
         boost::thread(boost::bind(
                 do_inference, buf_event)).detach();

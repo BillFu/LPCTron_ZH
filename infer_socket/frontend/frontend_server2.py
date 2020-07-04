@@ -3,7 +3,8 @@
 import sys
 import socket
 # from socket import error as socket_error
-
+# from flask import Flask, jsonify, request, render_template
+import json
 
 def main():
 	''''
@@ -43,8 +44,14 @@ def main():
 	print("Successfully connected with the Backend Server!")
 
 	# sock.send(b'{"host": localhost, "port": 8787}}')
-	socket_to_backend.send(b'I am frontend_server.')
-	print("send out request!")
+	job = {
+		"sentence_id": "1001",
+		"sample_rate": 16000,
+		"ipa_id_seq": [3, 6, 8, 9, 21, 56, 23]
+	}
+	job_str = json.dumps(job)
+	socket_to_backend.send(job_str.encode())
+	print("send out job request!")
 
 	print("waiting for reply from the Backend Server!")
 
