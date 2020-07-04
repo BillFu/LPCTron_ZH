@@ -2,18 +2,68 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 #include <event2/util.h>
+#include <event2/thread.h>
 #include <arpa/inet.h>
 #include <string>
 #include <iostream>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/tcp.h>
+
+#define BOOST_THREAD_VERSION 4
+
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 
 struct info {
     const char *name;
     size_t total_drained;
 };
 
-void read_callback(struct bufferevent *bev, void *ctx)
+void wait(int seconds)
 {
-    struct evbuffer* input = bufferevent_get_input(bev);
+    boost::this_thread::sleep_for(boost::chrono::seconds{seconds});
+}
+
+void do_inference(struct bufferevent *buf_event)
+{
+    printf("tts inference is in running.\n");
+
+    for (int i = 0; i < 5; ++i)
+    {
+        wait(1);
+        std::cout << i << '\n';
+    }
+
+    printf("tts inference is done.\n");
+
+    char reply_msg[] = "tts done";
+    size_t size_reply = strlen(reply_msg);
+
+    int result2 = bufferevent_write(buf_event, reply_msg, size_reply);
+    if(result2 == -1) //failure
+    {
+        printf("error occurred when to send out reply.\n");
+        return;
+    }
+    else
+    {
+        printf("reply has been sent out.\n");
+    }
+
+    int result3 = bufferevent_flush(buf_event, EV_WRITE, BEV_FLUSH);
+    printf("the result to call flush is: %d\n", result3);
+
+}
+
+// Remember that the thread must be joined or detached before its
+// destructor is called. Otherwise, your program will terminate!
+
+// BOOST_THREAD_VERSION=2
+
+void read_callback(struct bufferevent *buf_event, void *ctx)
+{
+    struct evbuffer* input = bufferevent_get_input(buf_event);
     size_t data_len = evbuffer_get_length(input);
     if (data_len)
     {
@@ -22,13 +72,16 @@ void read_callback(struct bufferevent *bev, void *ctx)
         int result = evbuffer_remove(input, in_msg, data_len);
         if(result == -1) //failure
         {
-            printf("received msg: %s\n", in_msg);
+            printf("error occurred to extract the incoming message.\n");
             return;
         }
 
         in_msg[data_len] = '\n';
         printf("length of msg %d bytes \n", (int)data_len);
         printf("received msg: %s\n", in_msg);
+
+        boost::thread(boost::bind(
+                do_inference, buf_event)).detach();
     }
 }
 
@@ -63,6 +116,9 @@ void on_conn_accepted(struct evconnlistener *listener,
     inet_ntop(AF_INET, &sin->sin_addr, addr, INET_ADDRSTRLEN);
     std::cout << "Accept TCP connection from: " << addr << std::endl;
 
+    int iOptval = 1;
+    int result = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &iOptval, sizeof(int));
+
     /* We got a new connection! Set up a bufferevent for it. */
     struct event_base* base = evconnlistener_get_base(listener);
     struct bufferevent* buf_evt = bufferevent_socket_new(
@@ -70,8 +126,9 @@ void on_conn_accepted(struct evconnlistener *listener,
     //This function returns a bufferevent on success, and NULL on failure.
 
     bufferevent_setcb(buf_evt, read_callback, NULL, event_callback, NULL);
-
+    bufferevent_enable(buf_evt, BEV_OPT_THREADSAFE );
     bufferevent_enable(buf_evt, EV_READ|EV_WRITE);
+
     //By default, a newly created bufferevent has writing enabled, but not reading.
 }
 
@@ -96,6 +153,8 @@ int main()
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(port);
+
+    evthread_use_pthreads();
 
     auto* base = event_base_new();
     auto* listener = evconnlistener_new_bind(

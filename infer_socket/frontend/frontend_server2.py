@@ -46,6 +46,8 @@ def main():
 	socket_to_backend.send(b'I am frontend_server.')
 	print("send out request!")
 
+	print("waiting for reply from the Backend Server!")
+
 	# 接收小于 1024 字节的数据
 	msg_received = socket_to_backend.recv(1024)
 	print("message received: {}".format(msg_received))
