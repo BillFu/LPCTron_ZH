@@ -49,6 +49,7 @@ def main():
 		"sample_rate": 16000,
 		"ipa_id_seq": [3, 6, 8, 9, 21, 56, 23]
 	}
+
 	job_str = json.dumps(job)
 	socket_to_backend.send(job_str.encode())
 	print("send out job request!")

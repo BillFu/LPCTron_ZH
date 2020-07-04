@@ -88,7 +88,7 @@ void read_callback(struct bufferevent *buf_event, void *ctx)
             return;
         }
 
-        in_msg[data_len] = '\n';
+        in_msg[data_len] = '\0';
         printf("length of msg %d bytes \n", (int)data_len);
         printf("received msg: %s\n", in_msg);
 
@@ -96,15 +96,6 @@ void read_callback(struct bufferevent *buf_event, void *ctx)
         // serialization with pretty printing
         // pass in the amount of spaces to indent
         std::cout << job_json.dump(4) << std::endl;
-
-        /*
-        json j2 = {
-                {"pi", 3.141},
-                {"happy", true},
-                {"list", {1, 0, 2}}
-        };
-        std::cout << j2.dump() << std::endl;
-        */
 
         boost::thread(boost::bind(
                 do_inference, buf_event)).detach();
