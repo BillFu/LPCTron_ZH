@@ -161,6 +161,37 @@ void accept_error_cb(struct evconnlistener *listener, void *arg)
     event_base_loopexit(base, NULL);
 }
 
+struct event_base* start_socket(const int port)
+{
+    struct sockaddr_in sin;
+    memset(&sin, 0, sizeof(sin));
+
+    sin.sin_family = AF_INET;
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    sin.sin_port = htons(port);
+
+    evthread_use_pthreads();
+
+    struct event_base* base = event_base_new();
+    auto* listener = evconnlistener_new_bind(
+            base, // event loop
+            on_conn_accepted, // callback function, invoked when a new connect request accepted
+            nullptr, // 传递给回调函数的参数
+            LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
+            reinterpret_cast<struct sockaddr *>(&sin), sizeof(sin)
+    );
+
+    if (listener == nullptr)
+    {
+        std::cerr << "Couldn't create socket listener" << std::endl;
+        event_base_free(base);
+        return NULL;
+    }
+
+    evconnlistener_set_error_cb(listener, accept_error_cb);
+    return base;
+}
+
 int main(int argc, char** argv)
 {
     if (argc != 3)
@@ -190,33 +221,18 @@ int main(int argc, char** argv)
         cout << "The Backend Infer Engine has been initialized successfully." << endl;
     }
 
-    short port = 8001;
-    struct sockaddr_in sin;
-    memset(&sin, 0, sizeof(sin));
-
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = htons(port);
-
-    evthread_use_pthreads();
-
-    auto* base = event_base_new();
-    auto* listener = evconnlistener_new_bind(
-            base, // event loop
-            on_conn_accepted, // callback function, invoked when a new connect request accepted
-            nullptr, // 传递给回调函数的参数
-            LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
-            reinterpret_cast<struct sockaddr *>(&sin), sizeof(sin)
-    );
-
-    if (listener == nullptr)
+    int listen_port = 8001;
+    struct event_base* event_base_ = start_socket(listen_port);
+    if (event_base_ == NULL)
     {
-        std::cerr << "Couldn't create socket listener" << std::endl;
         return 1;
     }
 
-    evconnlistener_set_error_cb(listener, accept_error_cb);
-    event_base_dispatch(base);
+    cout << "The Backend Server is listening at port: " << listen_port << endl;
+
+    event_base_dispatch(event_base_); // run event loop
+
+    event_base_free(event_base_);
 
     return 0;
 }

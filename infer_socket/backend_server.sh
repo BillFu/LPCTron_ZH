@@ -1,12 +1,12 @@
 
-# TACOTRON_MODEL_FILE=tacotron.pb
-# OUT_WAV_DIR=out_wav
+TACOTRON_MODEL_FILE=tacotron.pb
+OUT_WAV_DIR=out_wav
 
-# mkdir -p $OUT_WAV_DIR
+mkdir -p $OUT_WAV_DIR
 
 SERVER_EXE=backend/bin/backend_server
 chmod +x $SERVER_EXE
 
-# backend_infer/bin/backend_server $TACOTRON_MODEL_FILE $OUT_WAV_DIR
+# backend_infer/bin/backend_server 
 
-$SERVER_EXE 
+$SERVER_EXE $TACOTRON_MODEL_FILE $OUT_WAV_DIR
