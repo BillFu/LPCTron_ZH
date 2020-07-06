@@ -16,12 +16,12 @@
 #include <boost/chrono.hpp>
 
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
-struct info {
-    const char *name;
-    size_t total_drained;
-};
+#include "BackendImp.h"
+
+using json = nlohmann::json;
+using namespace std;
+
 
 void wait(int seconds)
 {
@@ -161,8 +161,35 @@ void accept_error_cb(struct evconnlistener *listener, void *arg)
     event_base_loopexit(base, NULL);
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    if (argc != 3)
+    {
+        cout << "Usage: ./backend_server <tacotron model file> <out_wav_dir>" << endl;
+        return 1;
+    }
+
+    std::string taco_model_file_name = argv[1];
+    string out_wav_dir = argv[2];
+
+    cout << "Tacotron-2 Model File: " << taco_model_file_name << endl;
+    cout << "out wav dir: " << out_wav_dir << endl;
+
+    BackendImp backend_core;
+
+    string error_msg;
+    bool is_ok = backend_core.initialize(taco_model_file_name,
+                                    out_wav_dir, error_msg);
+    if(!is_ok)
+    {
+        cout << "Failed to initialize the Infer Service: " << error_msg << endl;
+        return 1;
+    }
+    else
+    {
+        cout << "The Backend Infer Engine has been initialized successfully." << endl;
+    }
+
     short port = 8001;
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
