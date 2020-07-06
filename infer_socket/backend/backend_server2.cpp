@@ -34,15 +34,18 @@ void wait(int seconds)
 */
 
 void do_inference(struct bufferevent* buf_event,
-        const string& sentence_id, int out_sr,  const string& ipa_is_seq_str)
+        const string& sentence_id, int out_sr,  const string& ipa_id_seq_str)
 {
     printf("backend inference is in running.\n");
 
+    string error_msg;
+    bool is_ok = backend_core.commitJob(sentence_id, out_sr,
+                               ipa_id_seq_str,  error_msg);
 
     json reply = {
             {"sentence_id",  sentence_id},
-            {"is_ok", true},
-            {"error_msg", ""}
+            {"is_ok", is_ok},
+            {"error_msg", error_msg}
     };
     std::string reply_str = reply.dump();
     size_t size_reply = reply_str.length();
@@ -60,7 +63,6 @@ void do_inference(struct bufferevent* buf_event,
 
     int result3 = bufferevent_flush(buf_event, EV_WRITE, BEV_FLUSH);
     printf("the result to call flush is: %d\n", result3);
-
 }
 
 // Remember that the thread must be joined or detached before its
