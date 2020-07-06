@@ -12,8 +12,22 @@ set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 
+if (CMAKE_HOST_APPLE)
+    set(MACOS 1)
+elseif (CMAKE_HOST_UNIX)
+    set(LINUX 1)
+endif ()
+
+if (LINUX)
+    link_directories(../libsamplerate/build)
+    include_directories(../libsamplerate/src)
+elseif (MACOS)
+    link_directories($ENV{HOME}/libsamplerate/build)
+    include_directories($ENV{HOME}/libsamplerate/src)
+endif()
+
 add_executable(backend_server backend_server2.cpp
-        BackendImp.cpp TFUtils.cpp
+        BackendImp.cpp wav_utils_v2.cpp TFUtils.cpp
         nnet_data.cpp lpcnet.cpp nnet.cpp  freq.cpp
         kiss_fft.cpp pitch.cpp celt_lpc.cpp vec_avx.h)
 set_target_properties(backend_server PROPERTIES CXX_STANDARD 14)

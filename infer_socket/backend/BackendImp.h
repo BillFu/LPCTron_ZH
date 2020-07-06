@@ -37,14 +37,15 @@ public:
     bool initialize(const string& taco_model_file_name,
                     const string& out_wav_dir, string &error_msg);
 
-    //Status commitJob(ServerContext* context,
-    //                 const ::JobRequest* request, ::JobReply* response)
-    //override;
+    // return a boolean value, isOK
+    // another return variable is error_msg
+    bool commitJob(const string& sentence_id, int sr,
+            const string& ipa_id_seq_str,  string& error_msg);
 
 private:
     // return true for OK;
     // otherwise false for error happened, and error_msg contains the detail.
-    bool infer(const vector<int>& ipa_id_list, const string& out_sr,
+    bool infer(const vector<int>& ipa_id_list, const int out_sr,
                const string& out_wave_file_name, string& error_msg);
 };
 

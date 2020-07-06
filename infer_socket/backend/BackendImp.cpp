@@ -2,7 +2,12 @@
 // Created by Bill Fu on 2020/7/6.
 //
 
+#include "arch.h"
+#include "freq.h"
+
 #include "BackendImp.h"
+#include "wav_utils_v2.h"
+
 
 // split the string of ipa id seq into a list of integer IDs.
 void tokenize_ipa_seq(string const &ipa_id_seq_str,
@@ -75,47 +80,46 @@ bool BackendImp::initialize(const string& taco_model_file_name,
     return true;
 }
 
-/*
-Status BackendImp::commitJob(ServerContext* context,
-                                   const ::JobRequest* request, ::JobReply* response)
+// return a boolean value, isOK
+// another return variable is error_msg
+bool BackendImp::commitJob(const string& sentence_id, int sr,
+        const string& ipa_id_seq_str,  string& error_msg)
 {
+    /*
     cout << "============new job request arrived============" << endl;
     cout << "sentence_id: " << request->sentence_id() << endl;
     cout << "sr: " << request->sr() << endl;
     cout << "ipa id seq: " << request->ipa_id_seq() << endl;
+    */
 
     vector<int> ipa_id_seq;
-    tokenize_ipa_seq(request->ipa_id_seq(), ipa_id_seq);
+    tokenize_ipa_seq(ipa_id_seq_str, ipa_id_seq);
     int num_ids = ipa_id_seq.size();
     if(num_ids == 0)
     {
-        response->set_isok(false);
-        response->set_error_msg("the ipa id seq is EMPTY.");
-        return Status::OK;
+        error_msg = "the ipa id seq is EMPTY.";
+        return false;
     }
 
-    string error_msg;
-    string out_wave_file_name = _out_wav_dir + "/" + request->sentence_id() + ".wav";;
+    //string error_msg;
+    string out_wave_file_name = _out_wav_dir + "/" + sentence_id + ".wav";;
 
-    bool is_ok = infer(ipa_id_seq, request->sr(),
+    bool is_ok = infer(ipa_id_seq, sr,
                        out_wave_file_name,error_msg);
     if(!is_ok)  // Error happened
     {
-        response->set_isok(false);
-        response->set_error_msg(error_msg);
+        // error_msg has been given
+        return false;
     }
     else
     {
-        response->set_isok(true);
-        response->set_error_msg("OK");
+        error_msg = "OK";
+        return true;
     }
-
-    return Status::OK;
 }
-*/
 
-/*
-bool BackendImp::infer(const vector<int>& ipa_id_list, const string& out_sr,
+
+bool BackendImp::infer(const vector<int>& ipa_id_list, int out_sr,
                              const string& out_wave_file_name, string& error_msg)
 {
     // Input Tensor Create
@@ -190,7 +194,7 @@ bool BackendImp::infer(const vector<int>& ipa_id_list, const string& out_sr,
 
     int num_samples_16k = FRAME_SIZE * num_frames;
 
-    if (out_sr == "16k")
+    if (out_sr == 16000)
     {
         bool is_ok = save_pcm_as_wav(out_wave_file_name.c_str(), 16000,
                                      out_pcm_16k_buffer, num_samples_16k);
@@ -233,4 +237,3 @@ bool BackendImp::infer(const vector<int>& ipa_id_list, const string& out_sr,
 
     return true;
 }
-*/
