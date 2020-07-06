@@ -14,6 +14,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
+#include <boost/type_index.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -21,33 +22,27 @@
 
 using json = nlohmann::json;
 using namespace std;
+using namespace boost::typeindex;
 
+BackendImp backend_core;
 
+/*
 void wait(int seconds)
 {
     boost::this_thread::sleep_for(boost::chrono::seconds{seconds});
 }
+*/
 
-void do_inference(struct bufferevent *buf_event)
+void do_inference(struct bufferevent* buf_event,
+        const string& sentence_id, int out_sr,  const string& ipa_is_seq_str)
 {
-    printf("tts inference is in running.\n");
+    printf("backend inference is in running.\n");
 
-    for (int i = 0; i < 5; ++i)
-    {
-        wait(1);
-        std::cout << i << '\n';
-    }
-
-    printf("tts inference is done.\n");
-
-    //char reply_msg[] = "tts done";
-    //size_t size_reply = strlen(reply_msg);
 
     json reply = {
-            {"pi", 3.141},
-            {"happy", true},
-            {"name", "Niels"},
-            {"list", {1, 0, 2}}
+            {"sentence_id",  sentence_id},
+            {"is_ok", true},
+            {"error_msg", ""}
     };
     std::string reply_str = reply.dump();
     size_t size_reply = reply_str.length();
@@ -71,35 +66,39 @@ void do_inference(struct bufferevent *buf_event)
 // Remember that the thread must be joined or detached before its
 // destructor is called. Otherwise, your program will terminate!
 
-// BOOST_THREAD_VERSION=2
-
 void read_callback(struct bufferevent *buf_event, void *ctx)
 {
     struct evbuffer* input = bufferevent_get_input(buf_event);
     size_t data_len = evbuffer_get_length(input);
-    if (data_len)
+    if (data_len <= 0)
+        return;
+
+    char in_msg[1024];
+
+    int result = evbuffer_remove(input, in_msg, data_len);
+    if(result == -1) //failure
     {
-        char in_msg[1024];
-
-        int result = evbuffer_remove(input, in_msg, data_len);
-        if(result == -1) //failure
-        {
-            printf("error occurred to extract the incoming message.\n");
-            return;
-        }
-
-        in_msg[data_len] = '\0';
-        printf("length of msg %d bytes \n", (int)data_len);
-        printf("received msg: %s\n", in_msg);
-
-        auto job_json = json::parse(in_msg);
-        // serialization with pretty printing
-        // pass in the amount of spaces to indent
-        std::cout << job_json.dump(4) << std::endl;
-
-        boost::thread(boost::bind(
-                do_inference, buf_event)).detach();
+        printf("error occurred to extract the incoming message.\n");
+        return;
     }
+
+    in_msg[data_len] = '\0';
+    printf("length of msg %d bytes \n", (int)data_len);
+    printf("received msg: %s\n", in_msg);
+
+    auto job_json = json::parse(in_msg);
+    // serialization with pretty printing
+    // pass in the amount of spaces to indent
+    std::cout << job_json.dump(4) << std::endl;
+
+    string sentence_id = job_json["sentence_id"];
+    int out_sr = job_json["sample_rate"];
+    string ipa_id_seq_str = job_json["ipa_id_seq"];
+
+    boost::thread(boost::bind(
+            do_inference, buf_event,
+            sentence_id, out_sr, ipa_id_seq_str)).detach();
+
 }
 
 void event_callback(struct bufferevent *bev, short events, void *ctx)
@@ -123,7 +122,7 @@ void event_callback(struct bufferevent *bev, short events, void *ctx)
     }
 }
 
-void on_conn_accepted(struct evconnlistener *listener,
+void connection_accepted(struct evconnlistener *listener,
                     evutil_socket_t fd,
                     struct sockaddr *address,
                     int socklen, void *arg)
@@ -134,7 +133,7 @@ void on_conn_accepted(struct evconnlistener *listener,
     std::cout << "Accept TCP connection from: " << addr << std::endl;
 
     int iOptval = 1;
-    int result = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &iOptval, sizeof(int));
+    int result = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*) &iOptval, sizeof(int));
 
     /* We got a new connection! Set up a bufferevent for it. */
     struct event_base* base = evconnlistener_get_base(listener);
@@ -142,7 +141,7 @@ void on_conn_accepted(struct evconnlistener *listener,
             base, fd, BEV_OPT_CLOSE_ON_FREE);
     //This function returns a bufferevent on success, and NULL on failure.
 
-    bufferevent_setcb(buf_evt, read_callback, NULL, event_callback, NULL);
+    bufferevent_setcb(buf_evt, read_callback, nullptr, event_callback, nullptr);
     bufferevent_enable(buf_evt, BEV_OPT_THREADSAFE );
     bufferevent_enable(buf_evt, EV_READ|EV_WRITE);
 
@@ -158,7 +157,7 @@ void accept_error_cb(struct evconnlistener *listener, void *arg)
               << evutil_socket_error_to_string(err)
               << std::endl;
 
-    event_base_loopexit(base, NULL);
+    event_base_loopexit(base, nullptr);
 }
 
 struct event_base* start_socket(const int port)
@@ -172,10 +171,10 @@ struct event_base* start_socket(const int port)
 
     evthread_use_pthreads();
 
-    struct event_base* base = event_base_new();
+    struct event_base* event_base_ = event_base_new();
     auto* listener = evconnlistener_new_bind(
-            base, // event loop
-            on_conn_accepted, // callback function, invoked when a new connect request accepted
+            event_base_, // event loop
+            connection_accepted, // callback function, invoked when a new connect request accepted
             nullptr, // 传递给回调函数的参数
             LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
             reinterpret_cast<struct sockaddr *>(&sin), sizeof(sin)
@@ -184,12 +183,12 @@ struct event_base* start_socket(const int port)
     if (listener == nullptr)
     {
         std::cerr << "Couldn't create socket listener" << std::endl;
-        event_base_free(base);
-        return NULL;
+        event_base_free(event_base_);
+        return nullptr;
     }
 
     evconnlistener_set_error_cb(listener, accept_error_cb);
-    return base;
+    return event_base_;
 }
 
 int main(int argc, char** argv)
@@ -206,9 +205,8 @@ int main(int argc, char** argv)
     cout << "Tacotron-2 Model File: " << taco_model_file_name << endl;
     cout << "out wav dir: " << out_wav_dir << endl;
 
-    BackendImp backend_core;
-
     string error_msg;
+    // !!! backend_core is a Global variable.
     bool is_ok = backend_core.initialize(taco_model_file_name,
                                     out_wav_dir, error_msg);
     if(!is_ok)
@@ -223,7 +221,7 @@ int main(int argc, char** argv)
 
     int listen_port = 8001;
     struct event_base* event_base_ = start_socket(listen_port);
-    if (event_base_ == NULL)
+    if (event_base_ == nullptr)
     {
         return 1;
     }
