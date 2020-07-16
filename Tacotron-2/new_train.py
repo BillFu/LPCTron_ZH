@@ -1,14 +1,13 @@
 import argparse
 import tensorflow as tf 
-from tacotron.new_train import tacotron_train
-from wavenet_vocoder.train import wavenet_train
-from tacotron.synthesize import tacotron_synthesize
-from infolog import log
-from my_hparams import hparams
+from .tacotron.new_train import tacotron_train
+from .infolog import init as init_log, log as log_obj
+from .my_hparams import hparams
 import os
-import infolog
 from time import sleep
-log = infolog.log
+
+
+log = log_obj
 
 
 def save_seq(file, sequence, input_path):
@@ -35,7 +34,7 @@ def prepare_run(args):
     run_name = args.name or args.model
     log_dir = os.path.join(args.base_dir, 'logs-{}'.format(run_name))
     os.makedirs(log_dir, exist_ok=True)
-    infolog.init(os.path.join(log_dir, 'Terminal_train_log'), run_name)
+    init_log(os.path.join(log_dir, 'Terminal_train_log'), run_name)
     return log_dir, modified_hp
 
 def train(args, log_dir, hparams):
@@ -54,14 +53,6 @@ def train(args, log_dir, hparams):
         if checkpoint is None:
             raise('Error occured while training Tacotron, Exiting!')
         taco_state = 1
-        save_seq(state_file, [taco_state, GTA_state, wave_state], input_path)
-
-    if not GTA_state:
-        log('\n#############################################################\n')
-        log('Tacotron GTA Synthesis\n')
-        log('###########################################################\n')
-        input_path = tacotron_synthesize(args, hparams, checkpoint)
-        GTA_state = 1
         save_seq(state_file, [taco_state, GTA_state, wave_state], input_path)
 
     if input_path == '' or input_path is None:
@@ -113,14 +104,7 @@ def main():
 
     log_dir, hparams = prepare_run(args)
 
-    if args.model == 'Tacotron':
-        tacotron_train(args, log_dir, hparams)
-    elif args.model == 'WaveNet':
-        wavenet_train(args, log_dir, hparams, args.wavenet_input)
-    elif args.model in ('Both', 'Tacotron-2'):
-        train(args, log_dir, hparams)
-    else:
-        raise ValueError('Model provided {} unknown! {}'.format(args.model, accepted_models))
+    tacotron_train(args, log_dir, hparams)
 
 
 if __name__ == '__main__':

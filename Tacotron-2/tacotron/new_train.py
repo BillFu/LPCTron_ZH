@@ -7,16 +7,16 @@ import tensorflow as tf
 import traceback
 import argparse
 
-from tacotron.new_feeder import Feeder
-from my_hparams import hparams_debug_string
-from tacotron.models import create_model
-from tacotron.utils.ipa_text import sequence_to_text
-from tacotron.utils import plot, ValueWindow
-import infolog
-from datasets import audio
+from .new_feeder import Feeder
+from ..my_hparams import hparams_debug_string
+from .models import create_model
+from .utils.ipa_text import sequence_to_text
+from .utils import plot, ValueWindow
+from .infolog import log as log_obj
+from ..datasets import audio
 from tqdm import tqdm
 
-log = infolog.log
+log = log_obj
 
 
 def add_train_stats(model, hparams):

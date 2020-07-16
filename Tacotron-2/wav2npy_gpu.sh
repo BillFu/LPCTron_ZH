@@ -27,7 +27,7 @@ for i in ${PCM_DIR}/*.s16
 do
   f32_file=${F32_DIR}/$(basename "$i" | cut -d. -f1).npy
   echo $f32_file
-  ../LPCNet/dump_data -test $i $f32_file
+  ../LPCNet/dump_data_t2 -test $i $f32_file
 done
 
 #Original Tacotron Training is done with Text and Audio. But when we integrate with LPCNET training has to done with Text and F32/NPY
@@ -36,4 +36,5 @@ done
 rm -rf ${FINAL_OUT_DIR}
 mkdir -p ${FINAL_OUT_DIR}
 
-cp ${F32_DIR}/* ${FINAL_OUT_DIR}/.
+# cp ${F32_DIR}/* ${FINAL_OUT_DIR}/.
+find ${F32_DIR}/ -name "*.npy" -exec cp {} ${FINAL_OUT_DIR}/ \;
